@@ -243,7 +243,7 @@ function renderToday() {
           </div>
         </div>
         <a class="hero__promo" href="#/map">
-          ${mapSvg({ unfold: !quietRender, inert: true, big: true })}
+          ${mapSvg({ unfold: !quietRender && firstDrawThisSession(), inert: true, big: true })}
           <span class="btn btn--accent btn--lg hero__cta">${icon('i-map')} Explore the route</span>
         </a>
       </section>
@@ -400,7 +400,7 @@ function renderMap() {
     <h1 class="h1">The route</h1>
     ${here ? `<div class="now">${icon('i-pin')}<span><strong>Day ${st.day}:</strong> Mom &amp; Dad are in ${esc(here.name)}, ${esc(here.country)}.</span></div>${nowLine()}`
       : st.phase === 'before' ? `<div class="now">${icon('i-pin')}<span>The trip starts in Hanoi on ${esc(clock.shortDate(trip.start))}.</span></div>` : ''}
-    ${mapSvg({ here, day: st.day, unfold: !quietRender, progress })}
+    ${mapSvg({ here, day: st.day, progress })}
     <div class="legend"><span><i></i> Road or boat</span><span><i class="air"></i> Flight</span>${here ? '<span><b></b> They are here</span><span><i class="faint"></i> Still to come</span>' : ''}</div>
     <p class="meta">Tap a stop on the map to see it up close.</p>
     <ol class="citylist">${cities.map((c, i) => `<li><a class="cityrow${here && here.id === c.id ? ' cityrow--here' : ''}" href="#/day/${here && here.id === c.id ? st.day : c.days[0]}" data-stop="${c.id}">
@@ -683,6 +683,15 @@ function countUp(el, target) {
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let lastDay = null;
 let quietRender = false; // true for re-renders the user did not ask for (waking the phone): no replayed animations
+
+/** The route draws itself once per session, the first time the countdown screen opens. */
+function firstDrawThisSession() {
+  try {
+    if (sessionStorage.getItem('route-drawn')) return false;
+    sessionStorage.setItem('route-drawn', '1');
+    return true;
+  } catch { return true; }
+}
 
 /** Replay an entrance animation on the view: 'forward' | 'back' | 'settle'. */
 function enter(kind) {

@@ -101,10 +101,10 @@
   --band-h: 15rem;        /* the photo band above it on a phone */
   --promo-cta: 22rem;     /* and the button under it */
   --promo-map-wide: 19rem; /* the promo map on an iPad */
-  --draw: 800ms;          /* one leg glides in over this, soft start and stop */
-  --pop: 380ms;           /* its callout pops in as the line arrives */
-  --stagger: 1150ms;      /* the next leg begins after the pop has finished (~9s in all) */
-  --arrive: 120ms;        /* the pop starts this much before the line fully lands, so it reads as one motion */
+  --draw: 450ms;          /* one leg glides in over this, soft start and stop */
+  --pop: 300ms;           /* its callout pops in as the line arrives */
+  --stagger: 560ms;       /* the next leg begins as the pop finishes (~4.5s in all) */
+  --arrive: 80ms;         /* the pop starts this much before the line fully lands, so it reads as one motion */
   --seg-h: 0.4rem;        /* the trip progress strip */
   --select: 1.12;         /* a selected map stop grows to this */
   --maxw: 40rem;
