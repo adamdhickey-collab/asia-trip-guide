@@ -321,9 +321,16 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .map__leg { fill: none; stroke: var(--brand); stroke-width: 2.5; }
 .map__leg--air { stroke-dasharray: 5 5; }
 .map__city { cursor: pointer; }
-.map__city circle { fill: var(--brand); stroke: var(--bg-card); stroke-width: 3; }
-.map__city text { font-family: var(--font-body); font-size: 13px; font-weight: 700; fill: var(--fg); stroke: none; paint-order: stroke; stroke: var(--bg-muted); stroke-width: 4px; stroke-linejoin: round; }
-.map__city--here circle { fill: var(--accent); }
+.map__leader { stroke: var(--brand); stroke-width: 1.5; }
+.map__point { fill: var(--brand); stroke: none; }
+.map__ring { fill: none; stroke: var(--bg-card); stroke-width: 3; }
+.map__pill { fill: var(--brand); stroke: var(--bg-card); stroke-width: 2; }
+.map__pill-text { font-family: var(--font-body); font-size: 11px; font-weight: 700; fill: var(--brand-fg); stroke: none; }
+.map__name { font-family: var(--font-body); font-size: 13px; font-weight: 700; fill: var(--fg); stroke: var(--bg-muted); stroke-width: 4px; stroke-linejoin: round; paint-order: stroke; }
+.map__city--here .map__pill { fill: var(--accent); }
+.map__city--here .map__pill-text { fill: var(--accent-fg); }
+.map__city--here .map__point { fill: var(--accent); }
+.map__city--here .map__leader { stroke: var(--accent); }
 .map__pulse { fill: var(--accent); opacity: 0.5; transform-origin: center; transform-box: fill-box; animation: pulse 1.8s ease-out infinite; }
 @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.6; } 100% { transform: scale(2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .map__pulse { animation: none; opacity: 0.35; transform: scale(1.6); } }
@@ -349,7 +356,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .legend span { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .legend i { width: 2rem; height: 0; border-top: 3px solid var(--brand); }
 .legend i.air { border-top-style: dashed; }
-.legend b { width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--accent); }
+.legend b { width: 1.4rem; height: 0.9rem; border-radius: var(--radius-pill); background: var(--accent); }
 .citylist { display: grid; gap: var(--sp-2); }
 .cityrow { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; min-height: var(--tap); padding: var(--sp-2) var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; }
 .cityrow--here { border: 2px solid var(--accent); }
