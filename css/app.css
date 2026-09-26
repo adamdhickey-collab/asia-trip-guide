@@ -92,6 +92,9 @@
   --slide: 1.5rem;        /* how far a day slides in from the side it came from */
   --press: 0.97;          /* every tappable thing shrinks to this while pressed */
   --dot: 0.35rem;         /* the active-tab marker */
+  --promo-map: 15rem;     /* the map as a picture on the countdown hero */
+  --promo-cta: 22rem;     /* and the button under it */
+  --promo-map-wide: 19rem; /* the promo map on an iPad */
   --stagger: 160ms;       /* gap between stops as the route draws itself */
   --maxw: 40rem;
   --maxw-wide: 64rem;     /* iPad and landscape phones */
@@ -264,13 +267,17 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .pill--today { background: var(--accent); color: var(--accent-fg); }
 .pill--plain { background: none; backdrop-filter: none; padding-inline: 0; }
 
-/* The countdown hero: a title band over the route, one tap into the Map tab. */
-.hero--map { display: grid; grid-template-rows: auto 1fr; align-items: start; min-height: 0; background: var(--brand-soft); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
-.hero--map:active { transform: scale(var(--press)); }
-.hero--map .map { border-radius: 0; border: 0; }
-.hero--map .map-link__hint { bottom: var(--sp-3); }
+/* The countdown hero: a title band, then a promo of the route (small map,
+   big call to action). The promo is one link; the map inside is a picture. */
+.hero--map { display: grid; grid-template-rows: auto 1fr; align-items: start; min-height: 0; background: var(--brand-soft); }
+.hero--map .map { border-radius: 0; border: 0; background: transparent; width: min(100%, var(--promo-map)); }
 .hero__band { position: relative; padding: var(--sp-4); background: var(--brand); color: var(--brand-fg); display: grid; gap: var(--sp-2); }
 .hero__band .pill { background: rgb(255 255 255 / 0.18); }
+.hero__promo { display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-5); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
+.hero__promo:active { transform: scale(var(--press)); }
+.hero__promo .map__label { display: none; }
+.hero__promo .map__name { font-size: 17px; }
+.hero__cta { width: 100%; max-width: var(--promo-cta); font-size: var(--fs-h3); box-shadow: var(--shadow); }
 
 /* --- badges -------------------------------------------------------------- */
 .badges { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
@@ -459,9 +466,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .tabs { grid-auto-columns: minmax(0, 9rem); justify-content: center; }
   .driver__name { font-size: var(--fs-display-xl); }
   /* Countdown hero on a wide screen: band beside the map, map no taller than the screen. */
-  .hero--map { grid-template-columns: 2fr 3fr; grid-template-rows: none; align-items: stretch; min-height: 0; }
+  .hero--map { grid-template-columns: 1fr 1fr; grid-template-rows: none; align-items: stretch; min-height: 0; }
   .hero--map .hero__band { align-content: center; padding: var(--sp-6); }
-  .hero--map .map { max-height: 32rem; width: 100%; }
+  .hero__promo { align-content: center; padding: var(--sp-5); }
+  .hero--map .map { width: min(100%, var(--promo-map-wide)); }
 }
 
 /* --- print --------------------------------------------------------------- */

@@ -225,22 +225,19 @@ function renderToday() {
   const d1 = days[0];
   if (st.phase === 'before') {
     view.innerHTML = `
-      <a class="hero hero--map" href="#/map" aria-label="Open the full route map">
+      <section class="hero hero--map">
         <div class="hero__band">
           <div class="hero__kicker"><span class="pill">${esc(trip.name)}</span></div>
           <h1 class="hero__title">${esc(clock.shortDate(trip.start, false))} to ${esc(clock.shortDate(trip.end, false))}, 2027</h1>
           <p class="hero__sub">16 days · 6 stops · 3 countries</p>
         </div>
-        ${mapSvg({ unfold: true, inert: true })}
-        <span class="map-link__hint">${icon('i-map')} Tap to explore the route</span>
-      </a>
+        <a class="hero__promo" href="#/map">
+          ${mapSvg({ unfold: true, inert: true })}
+          <span class="btn btn--accent btn--lg hero__cta">${icon('i-map')} Explore the route</span>
+        </a>
+      </section>
       <div class="cols">
         <div class="col col--main">
-          <section class="card o-2">
-            <div class="card__title">The stops</div>
-            ${stopsHtml()}
-            <p class="meta">Tap a stop to read about those days.</p>
-          </section>
           <a class="card peek o-3" href="#/day/1">
             <img class="peek__img" src="${dayImage(1)}" alt="">
             <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
