@@ -203,10 +203,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .view--settle { animation: enter-settle var(--dur) var(--ease-out); }
 
 /* Press feedback for everything tappable that is not already a .btn. */
-.daybar__btn, .daybar__today, .tabs a, .dayrow, .cityrow, .peek, .gallery__btn, .map__city, .tel {
+.daybar__btn, .daybar__today, .tabs a, .dayrow, .cityrow, .peek, .stay__photo, .stay__thumb, .map__city, .tel {
   transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast), box-shadow var(--dur-fast);
 }
-.daybar__btn:active, .daybar__today:active, .dayrow:active, .cityrow:active, .peek:active, .gallery__btn:active { transform: scale(var(--press)); }
+.daybar__btn:active, .daybar__today:active, .dayrow:active, .cityrow:active, .peek:active, .stay__thumb:active { transform: scale(var(--press)); }
 .tabs a:active svg { transform: scale(var(--press)); }
 
 /* --- layout -------------------------------------------------------------- */
@@ -343,12 +343,23 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .peek__body { display: grid; gap: var(--sp-1); min-width: 0; }
 .peek svg { color: var(--brand); }
 
-/* --- day list ------------------------------------------------------------ */
-.city-group { display: grid; gap: var(--sp-2); }
-.city-group__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) 0 var(--sp-1); }
-.dayrow { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; min-height: var(--tap); }
+/* --- day list: one chapter per city -------------------------------------------
+   The city's photo and stop number on one side, its days on the other. */
+.chapters { display: grid; gap: var(--sp-4); }
+.chapter { display: grid; gap: var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--sp-3); }
+.chapter--here { border: 2px solid var(--accent); }
+.chapter__media { position: relative; border-radius: var(--radius); overflow: hidden; min-height: 9rem; display: grid; align-items: end; background: var(--brand-strong); }
+.chapter__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.chapter__caption { position: relative; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); color: var(--on-photo); background: linear-gradient(to top, var(--hero-overlay) 70%, var(--overlay-soft)); text-shadow: var(--text-shadow-photo); }
+.chapter__n { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand); color: var(--brand-fg); display: grid; place-items: center; font-weight: 700; font-size: var(--fs-meta); flex: none; text-shadow: none; }
+.chapter--here .chapter__n { background: var(--accent); color: var(--accent-fg); }
+.chapter__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-tight); font-weight: 600; }
+.chapter__meta { font-size: var(--fs-meta); opacity: 0.95; }
+.chapter__days { display: grid; gap: var(--sp-2); }
+.dayrow { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-2); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; min-height: var(--tap); }
 .dayrow--today { border: 2px solid var(--accent); background: var(--accent-soft); }
-.dayrow--past { opacity: 0.72; }
+.dayrow--past .dayrow__img { filter: saturate(0.6); }
+.dayrow--past .dayrow__title { color: var(--fg-muted); }
 .dayrow__img { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: var(--radius); outline: 1px solid var(--border); outline-offset: -1px; }
 .dayrow__body { display: grid; gap: 0.15rem; min-width: 0; }
 .dayrow__title { font-weight: 700; line-height: var(--lh-tight); }
@@ -437,7 +448,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .lightbox__nav--next { right: var(--sp-3); }
 .lightbox--single .lightbox__nav { display: none; }
 .lightbox__count { position: absolute; bottom: max(var(--sp-4), env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); color: var(--on-photo); font-size: var(--fs-meta); font-weight: 700; }
-.gallery img, .hero:not(.hero--map) .hero__img { cursor: zoom-in; }
+.hero:not(.hero--map) .hero__img { cursor: zoom-in; }
 
 .map-link { display: block; position: relative; border-radius: var(--radius-lg); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
 .map-link:active { transform: scale(var(--press)); }
@@ -463,16 +474,23 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .cityrow--here .cityrow__n { background: var(--accent); color: var(--accent-fg); }
 .cityrow svg { color: var(--fg-faint); }
 
-/* --- gallery ------------------------------------------------------------- */
-.gallery { display: flex; gap: var(--sp-2); overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4) var(--sp-2); scrollbar-width: none; }
-.gallery::-webkit-scrollbar { display: none; }
-.gallery img { flex: 0 0 82%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); scroll-snap-align: start; outline: 1px solid var(--border); outline-offset: -1px; }
-.gallery__nav { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
-.gallery__hint { font-size: var(--fs-meta); color: var(--fg-muted); }
-.gallery__btn { display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); border-radius: 50%; border: 2px solid var(--border-strong); background: var(--bg-card); color: var(--fg); cursor: pointer; }
-.gallery__btns { display: flex; gap: var(--sp-2); }
-.gallery__btn { transition: opacity var(--dur-fast); }
-.gallery__btn[aria-disabled="true"] { opacity: 0.35; pointer-events: none; }
+/* --- stays (the hotels screen) ------------------------------------------------
+   One stay per row in trip order: a main photo with a strip of thumbnails,
+   then the words. Wide screens put the photo beside the text. */
+.stays { display: grid; gap: var(--sp-4); }
+.stay { display: grid; gap: var(--sp-4); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--sp-4); }
+.stay--tonight { border: 2px solid var(--accent); }
+.stay__media { display: grid; gap: var(--sp-2); }
+.stay__photo { display: block; width: 100%; padding: 0; border: 0; background: none; border-radius: var(--radius); overflow: hidden; cursor: zoom-in; }
+.stay__photo img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; outline: 1px solid var(--border); outline-offset: -1px; transition: transform var(--dur) var(--ease-out); }
+.stay__thumbs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--sp-2); }
+.stay__thumb { padding: 0; border: 0; background: none; border-radius: var(--radius); overflow: hidden; cursor: zoom-in; min-height: var(--tap); }
+.stay__thumb img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; outline: 1px solid var(--border); outline-offset: -1px; transition: transform var(--dur) var(--ease-out); }
+.stay__body { display: grid; gap: var(--sp-3); align-content: start; min-width: 0; }
+.stay__kicker { display: flex; align-items: center; gap: var(--sp-3); font-size: var(--fs-meta); font-weight: 700; color: var(--fg-muted); }
+.stay__n { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand-soft); border: 1px solid var(--border); color: var(--brand-strong); display: grid; place-items: center; flex: none; }
+.stay--tonight .stay__n { background: var(--accent); color: var(--accent-fg); }
+.stay .badge { justify-self: start; }
 
 /* --- driver card --------------------------------------------------------- */
 .driver { animation: enter-settle var(--dur-slow) var(--ease-out); position: fixed; inset: 0; z-index: 20; background: var(--bg-card); color: var(--fg); display: grid; grid-template-rows: auto 1fr auto; padding: max(var(--sp-4), env(safe-area-inset-top)) var(--sp-4) max(var(--sp-4), env(safe-area-inset-bottom)); gap: var(--sp-4); }
@@ -541,10 +559,11 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .cols { display: grid; grid-template-columns: 3fr 2fr; gap: var(--sp-5); align-items: start; }
   .col { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
   .o-now, .o-badges, .o-plan, .o-hotel, .o-notes, .o-peek, .o-about, .o-1, .o-2, .o-3, .o-4 { order: 0; }
-  .view--days .city-group { grid-template-columns: 1fr 1fr; }
-  .view--days .city-group__head { grid-column: 1 / -1; }
-  .view--hotels { grid-template-columns: 1fr 1fr; align-items: start; }
-  .view--hotels > .h1 { grid-column: 1 / -1; }
+  .chapters { gap: var(--sp-5); }
+  .chapter { grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: var(--sp-4); padding: var(--sp-4); align-items: stretch; }
+  .chapter__media { min-height: 12rem; }
+  .stay { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: var(--sp-5); padding: var(--sp-5); align-items: start; }
+  .stays { gap: var(--sp-5); }
   .view--map { grid-template-columns: 3fr 2fr; align-items: start; }
   .view--map > .h1, .view--map > .now { grid-column: 1 / -1; }
   .view--map > .map { grid-row: span 3; }
@@ -581,13 +600,11 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .dayrow svg, .cityrow svg, .peek svg { transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast); }
   .dayrow:hover svg, .cityrow:hover svg, .peek:hover svg { transform: translateX(var(--nudge)); color: var(--brand); }
   .cityrow--hover { border-color: var(--brand); background: var(--bg-muted); } /* set from the map, see app.js */
-  .gallery__btn:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-strong); }
 
   /* photos ease in a touch, inside their rounded frames */
-  .gallery img, .hero:not(.hero--map) .hero__img, .peek__img, .dayrow__img { transition: transform var(--dur) var(--ease-out); }
-  .gallery img:hover, .hero:not(.hero--map):hover .hero__img { transform: scale(var(--grow)); }
+  .hero:not(.hero--map) .hero__img, .peek__img, .dayrow__img { transition: transform var(--dur) var(--ease-out); }
+  .stay__photo:hover img, .stay__thumb:hover img, .hero:not(.hero--map):hover .hero__img { transform: scale(var(--grow)); }
   .peek:hover .peek__img, .dayrow:hover .dayrow__img { transform: scale(var(--grow)); }
-  .gallery img { transform-origin: center; }
   .hero:not(.hero--map) { overflow: hidden; }
   .peek, .dayrow { overflow: hidden; }
   .lightbox__close:hover, .lightbox__nav:hover { background: rgb(255 255 255 / 0.32); }

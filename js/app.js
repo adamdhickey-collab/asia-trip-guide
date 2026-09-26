@@ -284,22 +284,37 @@ function renderDays() {
     const g = groups.at(-1);
     if (g && g.place === d.place) g.days.push(d); else groups.push({ place: d.place, country: d.country, days: [d] });
   }
-  view.innerHTML = `<h1 class="h1">All 16 days</h1>${groups.map((g) => `
-    <section class="city-group">
-      <div class="city-group__head"><h2 class="h2">${esc(g.place)}</h2><span class="meta">${esc(g.country)} · ${esc(clock.shortDate(g.days[0].date, false))}${g.days.length > 1 ? ` – ${esc(clock.shortDate(g.days.at(-1).date, false))}` : ''}</span></div>
-      ${g.days.map((d) => {
+  view.innerHTML = `
+    <h1 class="h1">All 16 days</h1>
+    <p class="lead muted">Six stops in trip order. Tap a day to open it.</p>
+    <ol class="chapters">${groups.map((g, i) => {
+    const city = cityOfDay(g.days[0].n);
+    const hereNow = st.phase === 'during' && g.days.some((d) => d.n === st.day);
+    return `<li class="chapter${hereNow ? ' chapter--here' : ''}">
+      <div class="chapter__media">
+        <img class="chapter__img" src="${city.photo}" alt="${esc(cityAlt(city))}" decoding="async">
+        <div class="chapter__caption">
+          <span class="chapter__n">${i + 1}</span>
+          <div>
+            <h2 class="chapter__title">${esc(g.place)}</h2>
+            <p class="chapter__meta">${esc(g.country)} · ${esc(clock.shortDate(g.days[0].date, false))}${g.days.length > 1 ? ` – ${esc(clock.shortDate(g.days.at(-1).date, false))}` : ''}${hereNow ? ' · They are here' : ''}</p>
+          </div>
+        </div>
+      </div>
+      <ol class="chapter__days">${g.days.map((d) => {
         const isToday = st.phase === 'during' && st.day === d.n;
         const past = st.phase === 'after' || (st.phase === 'during' && d.n < st.day);
         const early = earlyStart(d);
-        return `<a class="dayrow${isToday ? ' dayrow--today' : ''}${past ? ' dayrow--past' : ''}" href="#/day/${d.n}">
-          <img class="dayrow__img" src="${dayImage(d.n)}" alt="${esc(dayAlt(d.n))}" decoding="async">
+        return `<li><a class="dayrow${isToday ? ' dayrow--today' : ''}${past ? ' dayrow--past' : ''}" href="#/day/${d.n}">
+          <img class="dayrow__img" src="${dayImage(d.n)}" alt="${esc(dayAlt(d.n))}" decoding="async" loading="lazy">
           <div class="dayrow__body">
             <div class="meta">${isToday ? '<strong>Today · </strong>' : ''}Day ${d.n} · ${esc(clock.shortDate(d.date))}</div>
             <div class="dayrow__title">${esc(d.title)}</div>
             <div class="meta">${esc(d.route || d.place)}${early ? ` · <strong>${esc(early)} start</strong>` : ''}</div>
-          </div>${icon('i-right')}</a>`;
-      }).join('')}
-    </section>`).join('')}`;
+          </div>${icon('i-right')}</a></li>`;
+      }).join('')}</ol>
+    </li>`;
+  }).join('')}</ol>`;
 }
 
 // --- map ---------------------------------------------------------------------
@@ -469,44 +484,39 @@ function renderMap() {
 }
 
 function renderHotels() {
-  view.innerHTML = `<h1 class="h1">Where you're staying</h1>${hotels.map((h) => {
+  const st = status();
+  const tonight = st.phase === 'during' ? days[st.day - 1].hotel?.name : null;
+  view.innerHTML = `
+    <h1 class="h1">Where you're staying</h1>
+    <p class="lead muted">Six stays in trip order. Breakfast is included at every one.</p>
+    <ol class="stays">${hotels.map((h, i) => {
     const meta = HOTEL_PHOTOS[h.name];
     const city = cities.find((c) => c.id === meta.city);
     const first = days[h.days[0] - 1]; const last = days[h.days.at(-1) - 1];
-    const photos = hotelPhotos(h.name);
-    return `<section class="card stack">
-      <div class="gallery" id="gallery-${meta.slug}" aria-label="${esc(h.name)} photos">${photos.map((p, i) => `<img src="${p}" alt="${esc(hotelAlts(h.name)[i] || h.name)}" loading="lazy" decoding="async">`).join('')}</div>
-      ${photos.length > 1 ? `<div class="gallery__nav"><span class="gallery__hint">${photos.length} photos</span>
-        <span class="gallery__btns">
-          <button type="button" class="gallery__btn" data-gallery="gallery-${meta.slug}" data-dir="-1" aria-label="Previous photo">${icon('i-left')}</button>
-          <button type="button" class="gallery__btn" data-gallery="gallery-${meta.slug}" data-dir="1" aria-label="Next photo">${icon('i-right')}</button>
-        </span></div>` : ''}
-      <h2 class="h2">${esc(h.name)}</h2>
-      <p class="meta">${esc(city.name)}, ${esc(city.country)} · Days ${h.days[0]}–${h.days.at(-1)} · ${esc(clock.shortDate(first.date))} to ${esc(clock.shortDate(last.date))} · ${first.hotel.nights} night${first.hotel.nights > 1 ? 's' : ''}</p>
-      <p><strong>${esc(first.hotel.room)}</strong></p>
-      <p class="muted">${esc(h.blurb)}</p>
-      <div class="btn-row">
-        <a class="btn" href="#/driver/${meta.slug}">${icon('i-car')} Show the driver</a>
-        <a class="btn btn--ghost" href="${mapsUrl(h.name, city.name)}" target="_blank" rel="noopener">${icon('i-pin')} Open in Maps</a>
+    const photos = hotelPhotos(h.name); const alts = hotelAlts(h.name);
+    const isTonight = tonight === h.name;
+    const nights = first.hotel.nights;
+    return `<li class="stay${isTonight ? ' stay--tonight' : ''}" data-stay="${meta.slug}">
+      <div class="stay__media">
+        <button type="button" class="stay__photo" data-index="0" aria-label="${esc(alts[0] || h.name)}. See it full screen">
+          <img src="${photos[0]}" alt="${esc(alts[0] || h.name)}" decoding="async">
+        </button>
+        ${photos.length > 1 ? `<div class="stay__thumbs">${photos.slice(1).map((p, j) => `<button type="button" class="stay__thumb" data-index="${j + 1}" aria-label="${esc(alts[j + 1] || h.name)}. See it full screen"><img src="${p}" alt="${esc(alts[j + 1] || h.name)}" loading="lazy" decoding="async"></button>`).join('')}</div>` : ''}
       </div>
-    </section>`;
-  }).join('')}`;
-  view.querySelectorAll('.gallery__btn').forEach((b) => b.addEventListener('click', () => {
-    const g = document.getElementById(b.dataset.gallery);
-    g.scrollBy({ left: g.clientWidth * 0.82 * Number(b.dataset.dir), behavior: reducedMotion.matches ? 'auto' : 'smooth' });
-  }));
-  view.querySelectorAll('.gallery').forEach((g) => {
-    const btns = view.querySelectorAll(`.gallery__btn[data-gallery="${g.id}"]`);
-    const update = () => {
-      // The strip has side padding and snaps to it, so "the start" is one padding in.
-      const pad = parseFloat(getComputedStyle(g).paddingLeft) || 0;
-      const atStart = g.scrollLeft <= pad + 2; const atEnd = g.scrollLeft + g.clientWidth >= g.scrollWidth - pad - 2;
-      btns.forEach((b) => b.setAttribute('aria-disabled', String(b.dataset.dir === '-1' ? atStart : atEnd)));
-    };
-    let timer = 0;
-    g.addEventListener('scroll', () => { clearTimeout(timer); timer = setTimeout(update, 80); }, { passive: true });
-    update();
-  });
+      <div class="stay__body">
+        <div class="stay__kicker"><span class="stay__n">${i + 1}</span><span>${esc(city.name)}, ${esc(city.country)} · Days ${h.days[0]}–${h.days.at(-1)} · ${nights} night${nights > 1 ? 's' : ''}</span></div>
+        ${isTonight ? `<span class="badge">${icon('i-bed')} Tonight</span>` : ''}
+        <h2 class="h2">${esc(h.name)}</h2>
+        <p class="meta">${esc(clock.shortDate(first.date))} to ${esc(clock.shortDate(last.date))}</p>
+        <p><strong>${esc(first.hotel.room)}</strong></p>
+        <p class="muted">${esc(h.blurb)}</p>
+        <div class="btn-row">
+          <a class="btn" href="#/driver/${meta.slug}">${icon('i-car')} Show the driver</a>
+          <a class="btn btn--ghost" href="${mapsUrl(h.name, city.name)}" target="_blank" rel="noopener">${icon('i-pin')} Open in Maps</a>
+        </div>
+      </div>
+    </li>`;
+  }).join('')}</ol>`;
 }
 
 function renderDriver(slug) {
@@ -659,13 +669,12 @@ function openLightbox(srcs, index = 0, alts = []) {
   lightbox.querySelector('.lightbox__close').focus({ preventScroll: true });
 }
 
-/** Wire every gallery photo and day hero on the current screen to the lightbox. */
+/** Wire every stay photo and day hero on the current screen to the lightbox. */
 function bindLightbox() {
-  view.querySelectorAll('.gallery').forEach((g) => {
-    const imgs = [...g.querySelectorAll('img')];
-    imgs.forEach((img, i) => { img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', `${img.alt}. See it full screen`);
-      img.addEventListener('click', () => openLightbox(imgs.map((x) => x.src), i, imgs.map((x) => x.alt)));
-      img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(imgs.map((x) => x.src), i, imgs.map((x) => x.alt)); } }); });
+  view.querySelectorAll('.stay').forEach((stay) => {
+    const imgs = [...stay.querySelectorAll('.stay__media img')];
+    const srcs = imgs.map((x) => x.src); const alts = imgs.map((x) => x.alt);
+    stay.querySelectorAll('.stay__photo, .stay__thumb').forEach((b) => b.addEventListener('click', () => openLightbox(srcs, Number(b.dataset.index), alts)));
   });
   view.querySelectorAll('.hero:not(.hero--map) .hero__img').forEach((img) => {
     img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', `${img.alt}. See it full screen`);
