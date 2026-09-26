@@ -355,3 +355,40 @@ export const essentials = [
   { heading: 'Early starts', items: ['Day 9, Feb 4: leave the hotel at 5:00 am for sunrise at Angkor Wat'] },
   { heading: 'Not included', items: ['Lunches and dinners unless the day says so', 'Drinks', 'Tips for guides and drivers', 'Visas unless noted (Vietnam eVisa is in your documents; Cambodia visa is handled on arrival)'] },
 ];
+
+// Alt text for every photo the app shows. Written for the family member who
+// cannot see the picture, not for search engines.
+export const photoAlts = {
+  days: {
+    1: 'The lobby of the Oriental Jade Hotel in Hanoi, black lacquer and red velvet',
+    2: 'The stone facade of the Military History Museum in Hanoi',
+    3: 'Rows of glazed pottery at Bat Trang village',
+    4: 'The Lyra Grandeur cruise ship among the limestone islands of Halong Bay',
+    5: 'The pool deck of the Lyra Grandeur cruise ship',
+    6: 'The Caravelle Saigon hotel tower over Lam Son Square',
+    7: 'Wooden boats crowded together at a floating market on the Mekong Delta',
+    8: 'Jaya House River Park at night, lit up beside its pool',
+    9: 'Angkor Wat at sunrise, reflected in the lily pond',
+    10: 'Tree roots spilling over the stones of a jungle temple at Angkor',
+    11: 'The rooftop of the Amanor Hotel Chiang Mai',
+    12: 'An Asian elephant walking through the forest near Chiang Mai',
+    13: 'The gilded chedi of Wat Phra That Doi Suthep',
+    14: 'The Avani+ Riverside hotel on the Chao Phraya River in Bangkok',
+    15: 'The reclining Buddha and tiled rooftops of Wat Pho',
+    16: 'A mountain pagoda near Chiang Mai at sunset',
+  },
+  covers: {
+    'halong-junk': 'A red-sailed junk on Halong Bay at sunset',
+    'hanoi-raft': 'A woman poling a bamboo raft on a river near Hanoi',
+    'chiang-mai-pagoda': 'A mountain pagoda near Chiang Mai at sunset',
+    'angkor': 'Monks in orange robes walking toward Angkor Wat',
+  },
+  hotels: {
+    'oriental-jade': ['Lobby lounge with black cane chairs and red cushions', 'A guest room with a view of Hoan Kiem Lake', 'The hotel exterior on Hang Trong Street'],
+    'lyra': ['The Lyra Grandeur cruise ship in Halong Bay', 'The pool deck', 'The spa', 'The restaurant'],
+    'caravelle': ['The Caravelle Saigon tower', 'The lobby', 'The swimming pool', 'The dining room', 'A Signature Room'],
+    'jaya': ['Jaya House River Park at night beside its pool', 'The swimming pool among the trees', 'The dining terrace', 'A Deluxe Room'],
+    'amanor': ['The rooftop of the Amanor Chiang Mai', 'The rooftop bar at dusk', 'The rooftop pool', 'The dining room', 'The Manor Suite'],
+    'avani': ['The Avani+ Riverside on the Chao Phraya River', 'The infinity pool over the river', 'The rooftop lounge', 'The dining room', 'A Panorama River View Room'],
+  },
+};

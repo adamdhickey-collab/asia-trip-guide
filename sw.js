@@ -72,14 +72,26 @@ const SHELL = [
   './img/hotels/oriental-jade-3.jpg',
 ];
 
+// Tell any open page how the precache is going, so a first install on hotel
+// Wi-Fi shows "Saving… 23 of 60" instead of nothing.
+async function report(done, total) {
+  const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+  clients.forEach((c) => c.postMessage({ type: 'precache', done, total }));
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
     // cache: 'reload' skips the browser's HTTP cache so a new version never
-    // installs from stale copies of the old one.
-    caches.open(CACHE)
-      .then((cache) => cache.addAll(SHELL.map((u) => new Request(u, { cache: 'reload' }))))
-      .then(() => self.skipWaiting()),
-  );
+    // installs from stale copies of the old one. Six at a time keeps it quick.
+    let done = 0;
+    for (let i = 0; i < SHELL.length; i += 6) {
+      await Promise.all(SHELL.slice(i, i + 6).map((u) => cache.add(new Request(u, { cache: 'reload' }))));
+      done = Math.min(SHELL.length, i + 6);
+      await report(done, SHELL.length);
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
