@@ -34,6 +34,10 @@
   --edge: rgb(31 42 40 / 0.18);
   --edge-strong: rgb(31 42 40 / 0.36);
   --overlay: rgb(7 58 55 / 0.62);
+  --on-photo: #ffffff;               /* text laid over a photograph */
+  --on-photo-soft: rgb(255 255 255 / 0.22); /* a pill or button over a photograph */
+  --scrim: rgb(0 0 0 / 0.92);        /* behind the lightbox */
+  --map-land: #ffffff;
 
   /* --- semantic ---------------------------------------------------------- */
   --bg: var(--paper);
@@ -97,9 +101,10 @@
   --band-h: 15rem;        /* the photo band above it on a phone */
   --promo-cta: 22rem;     /* and the button under it */
   --promo-map-wide: 19rem; /* the promo map on an iPad */
-  --draw: 900ms;          /* one leg glides in over this, soft start and stop */
-  --stagger: 1000ms;      /* the next leg begins only after the previous has landed (~9s in all) */
-  --dur-calm: 700ms;      /* a callout fading in once its leg arrives */
+  --draw: 800ms;          /* one leg glides in over this, soft start and stop */
+  --pop: 380ms;           /* its callout pops in as the line arrives */
+  --stagger: 1150ms;      /* the next leg begins after the pop has finished (~9s in all) */
+  --arrive: 120ms;        /* the pop starts this much before the line fully lands, so it reads as one motion */
   --seg-h: 0.4rem;        /* the trip progress strip */
   --select: 1.12;         /* a selected map stop grows to this */
   --maxw: 40rem;
@@ -129,6 +134,7 @@
     --border: var(--edge);
     --border-strong: var(--edge-strong);
     --hero-overlay: rgb(0 0 0 / 0.55);
+    --map-land: #263a37;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
   }
 }
@@ -171,7 +177,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   background: var(--brand);
   color: var(--brand-fg);
 }
-.top__brand { color: inherit; text-decoration: none; font-family: var(--font-display); font-size: var(--fs-brand); font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.top__brand { color: inherit; text-decoration: none; font-family: var(--font-display); font-size: var(--fs-brand); font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; min-height: var(--tap); display: inline-flex; align-items: center; }
 .top__status { font-size: var(--fs-meta); opacity: 0.92; text-align: right; white-space: nowrap; flex: none; }
 
 /* --- motion ----------------------------------------------------------------
@@ -202,7 +208,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--sp-4); }
 .card--muted { background: var(--bg-muted); box-shadow: none; }
 .card--accent { background: var(--accent-soft); box-shadow: none; }
-.card__title { font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: var(--sp-3); }
+.card__title { font-family: var(--font-body); font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: var(--sp-3); }
 .card > .card__title:first-child { margin-top: 0; }
 
 .h1 { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-tight); font-weight: 600; }
@@ -259,19 +265,19 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .daybar__btn span { font-size: var(--fs-meta); }
 .daybar__mid { text-align: center; display: grid; justify-items: center; gap: var(--sp-1); min-width: 0; overflow: hidden; }
 .daybar__label { font-weight: 700; font-size: var(--fs-meta); }
-.daybar__today { text-decoration: none; white-space: nowrap; min-height: 2.25rem; padding: 0 var(--sp-3); border-radius: var(--radius-pill); background: var(--accent); color: var(--accent-fg); border: 0; font-weight: 700; font-size: var(--fs-meta); display: inline-flex; align-items: center; gap: var(--sp-1); }
+.daybar__today { text-decoration: none; white-space: nowrap; min-height: var(--tap); padding: 0 var(--sp-3); border-radius: var(--radius-pill); background: var(--accent); color: var(--accent-fg); border: 0; font-weight: 700; font-size: var(--fs-meta); display: inline-flex; align-items: center; gap: var(--sp-1); }
 
 /* --- hero ---------------------------------------------------------------- */
 .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--brand-strong); border: 1px solid var(--border); min-height: 15rem; display: grid; align-items: end; box-shadow: var(--shadow); }
 .hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: img-in var(--dur-slow) var(--ease-out); }
-.hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: #fff; background: linear-gradient(to top, var(--hero-overlay) 55%, transparent); display: grid; gap: var(--sp-2); }
+.hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: var(--on-photo); background: linear-gradient(to top, var(--hero-overlay) 55%, transparent); display: grid; gap: var(--sp-2); }
 .hero__body a { color: inherit; }
 .hero__kicker { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-tight); font-weight: 600; text-wrap: balance; }
 .hero__sub { font-size: var(--fs-lead); }
-.pill { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.2em 0.7em; border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.18); backdrop-filter: blur(6px); }
+.pill { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.2em 0.7em; border-radius: var(--radius-pill); background: var(--on-photo-soft); }
 .pill--today { background: var(--accent); color: var(--accent-fg); }
-.pill--plain { background: none; backdrop-filter: none; padding-inline: 0; }
+.pill--plain { background: none; padding-inline: 0; }
 
 /* The countdown hero: a title band, then a promo of the route (small map,
    big call to action). The promo is one link; the map inside is a picture. */
@@ -280,7 +286,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .hero__band { position: relative; overflow: hidden; min-height: var(--band-h); padding: var(--sp-4); background: var(--brand); color: var(--brand-fg); display: grid; align-content: end; }
 .hero__band::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-overlay) 45%, rgb(7 58 55 / 0.2)); }
 .hero__band-body { position: relative; display: grid; gap: var(--sp-2); }
-.hero__band .pill { background: rgb(255 255 255 / 0.18); }
+.hero__band .pill { background: var(--on-photo-soft); }
 .hero__promo { display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-5); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
 .hero__promo:active { transform: scale(var(--press)); }
 .hero__cta { width: 100%; max-width: var(--promo-cta); font-size: var(--fs-h3); box-shadow: var(--shadow); }
@@ -343,19 +349,19 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- map ----------------------------------------------------------------- */
 .map { width: 100%; height: auto; display: block; border-radius: var(--radius-lg); background: var(--brand-soft); border: 1px solid var(--border); }
-.map__land { fill: var(--bg-card); stroke: var(--border-strong); stroke-width: 1; }
+.map__land { fill: var(--map-land); stroke: var(--border-strong); stroke-width: 1; }
 .map__label { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; fill: var(--fg-faint); text-transform: uppercase; stroke: none; }
 .map__leg { fill: none; stroke: var(--brand); stroke-width: 2.5; }
 .map__leg--air { stroke-dasharray: 5 5; }
 .map__city { cursor: pointer; }
 .map__leader { stroke: var(--brand); stroke-width: 1.5; }
 .map__point { fill: var(--brand); stroke: none; }
-.map__ring { fill: none; stroke: var(--bg-card); stroke-width: 3; }
+.map__ring { fill: none; stroke: var(--on-photo); stroke-width: 3; }
 .map__pill { fill: var(--brand); stroke: var(--bg-card); stroke-width: 2; }
-.map__pill-text { font-family: var(--font-body); font-size: 11px; font-weight: 700; fill: var(--brand-fg); stroke: none; }
-.map__name { font-family: var(--font-body); font-size: 13px; font-weight: 700; fill: var(--fg); stroke: var(--brand-soft); stroke-width: 4px; stroke-linejoin: round; paint-order: stroke; }
+.map__pill-text { font-family: var(--font-body); font-size: 15px; font-weight: 700; fill: var(--brand-fg); stroke: none; }
+.map__name { font-family: var(--font-body); font-size: 17px; font-weight: 700; fill: var(--fg); stroke: var(--brand-soft); stroke-width: 5px; stroke-linejoin: round; paint-order: stroke; }
 .map--big .map__pill-text { font-size: 16px; }
-.map--big .map__name { font-size: 22px; stroke-width: 5px; }
+.map--big .map__name { font-size: 22px; }
 .map__city--here .map__pill { fill: var(--accent); }
 .map__city--here .map__pill-text { fill: var(--accent-fg); }
 .map__city--here .map__point { fill: var(--accent); }
@@ -368,15 +374,17 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
    whose dash offset runs from 1 to 0 (pathLength=1), leg by leg in travel
    order; each stop pops in as its leg arrives. Reduced motion zeroes it all. */
 @keyframes draw { to { stroke-dashoffset: 0; } }
-@keyframes city-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes city-in { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: none; } }
 .map__draw { fill: none; stroke: #fff; stroke-width: 14; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw var(--draw) var(--ease-in-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
-/* A callout fades in only after its leg has landed; nothing else moves meanwhile. */
-.map--unfold .map__city { opacity: 0; transform-box: fill-box; transform-origin: center; animation: city-in var(--dur-calm) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger) + var(--draw) * min(var(--i, 0), 1)); }
+/* A callout pops in as its line arrives (just before it fully lands), and the
+   next leg waits for the pop to finish: one continuous motion, stop by stop. */
+.map--unfold .map__city { opacity: 0; transform-box: fill-box; transform-origin: center; animation: city-in var(--pop) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger) + (var(--draw) - var(--arrive)) * min(var(--i, 0), 1)); }
 /* Country names hold still at half strength the whole time: the stage, not the play. */
 .map--unfold .map__label { opacity: 0.55; }
 .map--big .map__label { font-size: 15px; }
 @media (prefers-reduced-motion: reduce) { .map__draw, .map--unfold .map__city { animation-delay: 0s; } }
 .map__leg--upcoming { opacity: 0.4; }
+.map--unfold .map__city--set { opacity: 1; animation: none; }
 .map__city { transition: transform var(--dur) var(--ease-out); transform-box: fill-box; transform-origin: center; }
 .map__city--selected { transform: scale(var(--select)); }
 .map__city--selected .map__ring { stroke: var(--accent); stroke-width: 4; }
@@ -405,17 +413,17 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .progress__seg--viewing.progress__seg--today { outline: 0; }
 
 /* --- lightbox --------------------------------------------------------------- */
-.lightbox { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 0.92); display: grid; place-items: center; opacity: 0; transition: opacity var(--dur) var(--ease-out); padding: var(--sp-4); }
+.lightbox { position: fixed; inset: 0; z-index: 40; background: var(--scrim); display: grid; place-items: center; opacity: 0; transition: opacity var(--dur) var(--ease-out); padding: var(--sp-4); }
 .lightbox--open { opacity: 1; }
 .lightbox__img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--radius); transform: scale(0.96); transition: transform var(--dur-slow) var(--ease-out); }
 .lightbox--open .lightbox__img { transform: none; }
-.lightbox__close, .lightbox__nav { position: absolute; width: var(--tap); height: var(--tap); border-radius: 50%; border: 0; background: rgb(255 255 255 / 0.16); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.lightbox__close, .lightbox__nav { position: absolute; width: var(--tap); height: var(--tap); border-radius: 50%; border: 0; background: var(--on-photo-soft); color: var(--on-photo); display: grid; place-items: center; cursor: pointer; }
 .lightbox__close { top: max(var(--sp-4), env(safe-area-inset-top)); right: var(--sp-4); }
 .lightbox__nav { top: 50%; transform: translateY(-50%); }
 .lightbox__nav--prev { left: var(--sp-3); }
 .lightbox__nav--next { right: var(--sp-3); }
 .lightbox--single .lightbox__nav { display: none; }
-.lightbox__count { position: absolute; bottom: max(var(--sp-4), env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); color: #fff; font-size: var(--fs-meta); font-weight: 700; }
+.lightbox__count { position: absolute; bottom: max(var(--sp-4), env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); color: var(--on-photo); font-size: var(--fs-meta); font-weight: 700; }
 .gallery img, .hero:not(.hero--map) .hero__img { cursor: zoom-in; }
 
 .map-link { display: block; position: relative; border-radius: var(--radius-lg); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
@@ -463,12 +471,19 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .kv { display: grid; gap: var(--sp-3); }
 .kv li { display: grid; gap: var(--sp-1); min-width: 0; }
 .kv b { font-size: var(--fs-meta); color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-.tel { font-size: var(--fs-h3); font-weight: 700; }
+.tel { font-size: var(--fs-h3); font-weight: 700; min-height: var(--tap); display: inline-flex; align-items: center; gap: var(--sp-2); }
 .check { display: grid; gap: var(--sp-2); }
 .check li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: var(--sp-2); }
 .check svg { color: var(--brand); width: 1.4rem; height: 1.4rem; margin-top: 0.2rem; }
 .field { display: grid; gap: var(--sp-2); }
 .field input { font: inherit; min-height: var(--tap); padding: 0 var(--sp-3); border: 2px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-card); color: var(--fg); }
+
+/* --- fold ---------------------------------------------------------------- */
+.fold summary { cursor: pointer; min-height: var(--tap); display: flex; align-items: center; font-weight: 700; color: var(--fg-muted); list-style: none; }
+.fold summary::before { content: ""; width: 0.6em; height: 0.6em; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(-45deg); margin-right: var(--sp-3); transition: transform var(--dur-fast) var(--ease-out); }
+.fold[open] summary::before { transform: rotate(45deg); }
+.fold summary::-webkit-details-marker { display: none; }
+.fold > form { margin-top: var(--sp-3); }
 
 /* --- tabs ---------------------------------------------------------------- */
 .tabs {

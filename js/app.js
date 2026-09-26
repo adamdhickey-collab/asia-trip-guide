@@ -4,8 +4,8 @@
 // Routes: #/today  #/day/N  #/days  #/map  #/hotels  #/info  #/driver/SLUG  #/print
 // `?date=YYYY-MM-DD` on the URL previews any day (see clock.resolveNow).
 
-import { trip, days, hotels, essentials } from './itinerary.js';
-import { cities, legs, outlines, photoOffsets } from './places.js';
+import { trip, days, hotels, essentials, photoAlts } from './itinerary.js';
+import { cities, legs, outlines, photoOffsets, photoOffsetsLarge } from './places.js';
 import * as clock from './clock.js';
 import { APP_VERSION } from './version.js';
 
@@ -36,6 +36,9 @@ const hotelPhotos = (name) => {
   return Array.from({ length: m.n }, (_, i) => `img/hotels/${m.slug}-${i + 1}.jpg`);
 };
 const dayImage = (n) => (n === LAST ? 'img/cover/chiang-mai-pagoda.jpg' : `img/days/d${String(n).padStart(2, '0')}.jpg`);
+const dayAlt = (n) => photoAlts.days[n] || '';
+const hotelAlts = (name) => photoAlts.hotels[HOTEL_PHOTOS[name].slug] || [];
+const cityAlt = (c) => { const key = c.photo.split('/').pop().replace('.jpg', ''); return photoAlts.covers[key] || dayAlt(parseInt(key.replace(/\D/g, ''), 10)) || c.name; };
 const cityOfDay = (n) => cities.find((c) => c.days.includes(n));
 const mapsUrl = (name, city) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name}, ${city}`)}`;
 
@@ -102,7 +105,7 @@ function weekdayInZone(d, tz) {
 
 function hotelCard(day, { title = 'Tonight' } = {}) {
   if (!day.hotel) {
-    return `<section class="card card--muted o-hotel"><div class="card__title">Tonight</div>
+    return `<section class="card card--muted o-hotel"><h2 class="card__title">Tonight</h2>
       <p class="lead"><strong>Flying home.</strong> Check out of ${esc(days[day.n - 2].hotel.name)} this morning.</p></section>`;
   }
   const h = hotels.find((x) => x.name === day.hotel.name);
@@ -110,9 +113,9 @@ function hotelCard(day, { title = 'Tonight' } = {}) {
   const city = cities.find((c) => c.id === meta.city);
   const night = nightOf(day);
   return `<section class="card o-hotel">
-    <div class="card__title">${esc(title)}</div>
+    <h2 class="card__title">${esc(title)}</h2>
     <div class="hotel">
-      <img class="hotel__img" src="${hotelPhotos(h.name)[0]}" alt="">
+      <img class="hotel__img" src="${hotelPhotos(h.name)[0]}" alt="${esc(hotelAlts(h.name)[0] || h.name)}" decoding="async">
       <div class="hotel__body">
         <h3 class="h3">${esc(h.name)}</h3>
         <p class="muted">${esc(day.hotel.room)}</p>
@@ -144,13 +147,13 @@ function timelineHtml(day) {
 
 function notesHtml(day) {
   if (!day.notes.length) return '';
-  return `<section class="card card--accent o-notes"><div class="card__title">Good to know</div>
+  return `<section class="card card--accent o-notes"><h2 class="card__title">Good to know</h2>
     <ul class="notes">${day.notes.map((n) => `<li>${icon('i-check')}<span>${esc(n)}</span></li>`).join('')}</ul></section>`;
 }
 
 function heroHtml(day, { isToday }) {
   return `<section class="hero">
-    <img class="hero__img" src="${dayImage(day.n)}" alt="">
+    <img class="hero__img" src="${dayImage(day.n)}" alt="${esc(dayAlt(day.n))}" decoding="async">
     <div class="hero__body">
       <div class="hero__kicker">
         ${isToday ? `<span class="pill pill--today">${icon('i-sun')} Today</span>` : ''}
@@ -200,8 +203,8 @@ function renderDay(n) {
     ${heroHtml(day, { isToday })}
     <div class="cols">
       <div class="col col--main">
-        <section class="card o-plan"><div class="card__title">${isToday ? "Today's plan" : 'The plan'}</div>${timelineHtml(day)}</section>
-        <section class="card o-about"><div class="card__title">About the day</div><div class="prose">${bodyText}</div></section>
+        <section class="card o-plan"><h2 class="card__title">${isToday ? "Today's plan" : 'The plan'}</h2>${timelineHtml(day)}</section>
+        <section class="card o-about"><h2 class="card__title">About the day</h2><div class="prose">${bodyText}</div></section>
       </div>
       <div class="col col--side">
         ${isToday ? nowLine() : ''}
@@ -209,7 +212,7 @@ function renderDay(n) {
         ${hotelCard(day)}
         ${notesHtml(day)}
         ${tomorrow ? `<a class="card peek o-peek" href="#/day/${n + 1}">
-            <img class="peek__img" src="${dayImage(n + 1)}" alt="">
+            <img class="peek__img" src="${dayImage(n + 1)}" alt="${esc(dayAlt(n + 1))}" decoding="async">
             <div class="peek__body">
               <div class="card__title" style="margin:0">${isToday ? 'Tomorrow' : 'Next'} · ${esc(clock.shortDate(tomorrow.date))}</div>
               <div class="h3">${esc(tomorrow.title)}</div>
@@ -232,7 +235,7 @@ function renderToday() {
     view.innerHTML = `
       <section class="hero hero--map">
         <div class="hero__band">
-          <img class="hero__img" src="img/cover/halong-junk.jpg" alt="">
+          <img class="hero__img" src="img/cover/halong-junk.jpg" alt="${esc(photoAlts.covers['halong-junk'])}" decoding="async">
           <div class="hero__band-body">
             <div class="hero__kicker"><span class="pill">${esc(trip.name)}</span></div>
             <h1 class="hero__title">${esc(clock.shortDate(trip.start, false))} to ${esc(clock.shortDate(trip.end, false))}, 2027</h1>
@@ -240,7 +243,7 @@ function renderToday() {
           </div>
         </div>
         <a class="hero__promo" href="#/map">
-          ${mapSvg({ unfold: true, inert: true, big: true })}
+          ${mapSvg({ unfold: !quietRender, inert: true, big: true })}
           <span class="btn btn--accent btn--lg hero__cta">${icon('i-map')} Explore the route</span>
         </a>
       </section>
@@ -252,11 +255,11 @@ function renderToday() {
             <p class="muted">Day 1 is ${esc(clock.longDate(d1.date))}: arrive in Hanoi.</p>
           </section>
           <a class="card peek o-3" href="#/day/1">
-            <img class="peek__img" src="${dayImage(1)}" alt="">
+            <img class="peek__img" src="${dayImage(1)}" alt="${esc(dayAlt(1))}" decoding="async">
             <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
         </div>
         <div class="col col--side">
-          <section class="card o-4"><div class="card__title">Before you go</div>
+          <section class="card o-4"><h2 class="card__title">Before you go</h2>
             <ul class="check">${essentials[0].items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul>
             <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
           </section>
@@ -267,7 +270,7 @@ function renderToday() {
   }
   view.innerHTML = `
     <section class="hero">
-      <img class="hero__img" src="img/cover/angkor.jpg" alt="">
+      <img class="hero__img" src="img/cover/angkor.jpg" alt="${esc(photoAlts.covers.angkor)}" decoding="async">
       <div class="hero__body"><div class="hero__kicker"><span class="pill">${esc(trip.name)}</span></div>
         <h1 class="hero__title">Welcome home</h1><p class="hero__sub">16 days, 6 stops, 3 countries. Look back any time.</p></div>
     </section>
@@ -289,7 +292,7 @@ function renderDays() {
         const past = st.phase === 'after' || (st.phase === 'during' && d.n < st.day);
         const early = earlyStart(d);
         return `<a class="dayrow${isToday ? ' dayrow--today' : ''}${past ? ' dayrow--past' : ''}" href="#/day/${d.n}">
-          <img class="dayrow__img" src="${dayImage(d.n)}" alt="">
+          <img class="dayrow__img" src="${dayImage(d.n)}" alt="${esc(dayAlt(d.n))}" decoding="async">
           <div class="dayrow__body">
             <div class="meta">${isToday ? '<strong>Today · </strong>' : ''}Day ${d.n} · ${esc(clock.shortDate(d.date))}</div>
             <div class="dayrow__title">${esc(d.title)}</div>
@@ -305,7 +308,7 @@ const LON0 = 97; const LON1 = 111; const LAT1 = 23.5; const K = 360 / (LON1 - LO
 const px = (lon) => (lon - LON0) * K;
 const py = (lat) => (LAT1 - lat) * K;
 const MAP_H = py(5.5);
-const COUNTRY_LABELS = [['THAILAND', 15.6, 100.4], ['CAMBODIA', 11.7, 105.3], ['LAOS', 19.4, 102.5], ['VIETNAM', 15.6, 110.6, 'end']];
+const COUNTRY_LABELS = [['THAILAND', 14.6, 101.2], ['CAMBODIA', 11.7, 105.3], ['LAOS', 19.4, 102.5], ['VIETNAM', 15.6, 110.6, 'end']];
 
 /**
  * The route as inline SVG. `here` marks the current city (during the trip);
@@ -314,6 +317,11 @@ const COUNTRY_LABELS = [['THAILAND', 15.6, 100.4], ['CAMBODIA', 11.7, 105.3], ['
 function mapSvg({ here = null, unfold = false, day = null, link = false, inert = false, progress = null, big = false } = {}) {
   inert = inert || link; // a linked map, or one inside another link, has no marker links of its own
   const prefix = inert ? 'home' : 'map';
+  // Photo size: the promo (big labels, map shown small) uses 26; the Map tab
+  // shows the photos at twice the original size so you can see what they are.
+  const R = big ? 26 : 36; const PILL_H = 23; const CH = 9.5;
+  const offsets = big ? photoOffsets : photoOffsetsLarge;
+  const PAD = big ? 0 : 28; // room around the edge for the larger photos
   const land = Object.values(outlines).map((ring) => `<path class="map__land" d="M${ring.map(([la, lo]) => `${px(lo).toFixed(1)} ${py(la).toFixed(1)}`).join('L')}Z"/>`).join('');
   const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
   // Reveal order: each leg, then the city it arrives at. A `via` leg is an
@@ -321,6 +329,8 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
   // the city; Bangkok's callout waits for the leg that arrives to stay.
   const cityStep = { hanoi: 0 };
   legs.forEach((l, i) => { if (!l.via && !(l.to in cityStep)) cityStep[l.to] = i + 1; });
+  // During the trip, count travelled legs so the first leg ahead is step 1.
+  const base = progress === null ? 0 : legs.filter((l) => l.day <= progress).length;
   const legPaths = legs.map((l, i) => {
     const a = byId[l.from]; const b = byId[l.to];
     const x1 = px(a.lon); const y1 = py(a.lat); const x2 = px(b.lon); const y2 = py(b.lat);
@@ -335,42 +345,43 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
     const cls = `map__leg${l.mode === 'air' ? ' map__leg--air' : ''}${upcoming ? ' map__leg--upcoming' : ''}`;
     // When unfolding, a mask with the same path "draws" the leg: pathLength=1
     // lets CSS animate stroke-dashoffset from 1 to 0 without knowing the length.
+    // Legs already travelled are set instantly; only the road ahead draws.
+    const draws = unfold && (progress === null || l.day > progress);
     const maskId = `${prefix}-leg-${i}`;
-    const mask = unfold ? `<mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="360" height="${MAP_H.toFixed(0)}"><path class="map__draw" style="--i:${i + 1}" d="${d}" pathLength="1"/></mask>` : '';
-    return `${mask}<path class="${cls}" d="${d}"${unfold ? ` mask="url(#${maskId})"` : ''}/>`;
+    const mask = draws ? `<mask id="${maskId}" maskUnits="userSpaceOnUse" x="${-PAD}" y="${-PAD}" width="${360 + 2 * PAD}" height="${(MAP_H + 2 * PAD).toFixed(0)}"><path class="map__draw" style="--i:${i + 1 - base}" d="${d}" pathLength="1"/></mask>` : '';
+    return `${mask}<path class="${cls}" d="${d}"${draws ? ` mask="url(#${maskId})"` : ''}/>`;
   }).join('');
   // Each stop is a round photo of its highlight with a day pill under it,
   // tied to the exact point by a short leader line. R and the pill are in
   // map units (the SVG is 360 wide), not CSS pixels.
-  // `big` is the promo on the countdown screen, where the map is shown small.
-  const R = big ? 26 : 22; const PILL_H = big ? 23 : 17; const CH = big ? 9.5 : 7;
   const markers = cities.map((c) => {
     const x = px(c.lon); const y = py(c.lat);
-    const [ox, oy] = photoOffsets[c.id];
+    const [ox, oy] = offsets[c.id];
     const cx = x + ox; const cy = y + oy;
     const isHere = here && here.id === c.id;
     const target = isHere ? day : c.days[0];
-    const style = unfold ? ` style="--i:${cityStep[c.id]}"` : '';
+    const settled = progress !== null && cityStep[c.id] <= base; // already visited, or where they are
+    const style = unfold && !settled ? ` style="--i:${cityStep[c.id] - base}"` : '';
     const tag = inert ? 'g' : 'a';
     const attrs = inert ? '' : ` href="#/day/${target}" data-stop="${c.id}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
     const pillText = isHere ? String(day) : (c.days.length > 1 ? `${c.days[0]}–${c.days.at(-1)}` : String(c.days[0]));
-    const pillW = (big ? 16 : 12) + pillText.length * CH;
+    const pillW = 16 + pillText.length * CH;
     const clipId = `clip-${prefix}-${c.id}`;
-    return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}"${style}${attrs}>
+    return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}${unfold && settled ? ' map__city--set' : ''}"${style}${attrs}>
       <line class="map__leader" x1="${x}" y1="${y}" x2="${cx}" y2="${cy}"/>
       <circle class="map__point" cx="${x}" cy="${y}" r="3.5"/>
       ${isHere ? `<circle class="map__pulse" cx="${cx}" cy="${cy}" r="${R}"/>` : ''}
       <clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>
-      <image href="${c.photo}" x="${cx - R}" y="${cy - R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
+      <image href="${c.photo}" aria-label="${esc(cityAlt(c))}" x="${cx - R}" y="${cy - R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
       <circle class="map__ring" cx="${cx}" cy="${cy}" r="${R}"/>
       <rect class="map__pill" x="${cx - pillW / 2}" y="${cy + R - PILL_H / 2}" width="${pillW}" height="${PILL_H}" rx="${PILL_H / 2}"/>
-      <text class="map__pill-text" x="${cx}" y="${cy + R + (big ? 5.5 : 4)}" text-anchor="middle">${pillText}</text>
-      <text class="map__name" x="${cx}" y="${cy + R + PILL_H + (big ? 12 : 8)}" text-anchor="middle">${esc(c.name)}</text>
+      <text class="map__pill-text" x="${cx}" y="${cy + R + 5.5}" text-anchor="middle">${pillText}</text>
+      <text class="map__name" x="${cx}" y="${cy + R + PILL_H + 12}" text-anchor="middle">${esc(c.name)}</text>
       <circle class="map__hit" cx="${cx}" cy="${cy}" r="${R + 8}"/>
     </${tag}>`;
   }).join('');
   const countryLabels = COUNTRY_LABELS.map(([t, la, lo, an]) => `<text class="map__label" x="${px(lo)}" y="${py(la)}" text-anchor="${an || 'middle'}">${t}</text>`).join('');
-  const svg = `<svg class="map${unfold ? ' map--unfold' : ''}${big ? ' map--big' : ''}" style="--legs:${legs.length}" viewBox="0 0 360 ${MAP_H.toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
+  const svg = `<svg class="map${unfold ? ' map--unfold' : ''}${big ? ' map--big' : ''}" style="--legs:${legs.length}" viewBox="${-PAD} ${-PAD} ${360 + 2 * PAD} ${(MAP_H + 2 * PAD).toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
       ${land}${countryLabels}${legPaths}${markers}
     </svg>`;
   return link ? `<a class="map-link" href="#/map" aria-label="Open the full route map">${svg}<span class="map-link__hint">${icon('i-map')} Tap to explore the route</span></a>` : svg;
@@ -389,7 +400,7 @@ function renderMap() {
     <h1 class="h1">The route</h1>
     ${here ? `<div class="now">${icon('i-pin')}<span><strong>Day ${st.day}:</strong> Mom &amp; Dad are in ${esc(here.name)}, ${esc(here.country)}.</span></div>${nowLine()}`
       : st.phase === 'before' ? `<div class="now">${icon('i-pin')}<span>The trip starts in Hanoi on ${esc(clock.shortDate(trip.start))}.</span></div>` : ''}
-    ${mapSvg({ here, day: st.day, unfold: true, progress })}
+    ${mapSvg({ here, day: st.day, unfold: !quietRender, progress })}
     <div class="legend"><span><i></i> Road or boat</span><span><i class="air"></i> Flight</span>${here ? '<span><b></b> They are here</span><span><i class="faint"></i> Still to come</span>' : ''}</div>
     <p class="meta">Tap a stop on the map to see it up close.</p>
     <ol class="citylist">${cities.map((c, i) => `<li><a class="cityrow${here && here.id === c.id ? ' cityrow--here' : ''}" href="#/day/${here && here.id === c.id ? st.day : c.days[0]}" data-stop="${c.id}">
@@ -400,7 +411,7 @@ function renderMap() {
     <div class="sheet" id="stop-sheet" hidden>
       <div class="sheet__backdrop" data-close></div>
       <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
-        <img class="sheet__img" id="sheet-img" alt="">
+        <img class="sheet__img" id="sheet-img" alt="" decoding="async">
         <div class="sheet__body">
           <h2 class="h2" id="sheet-title"></h2>
           <p class="meta" id="sheet-meta"></p>
@@ -414,9 +425,12 @@ function renderMap() {
   // Tapping a stop (on the map or in the list) opens the sheet instead of
   // leaving the map: a look before you go.
   const sheet = document.getElementById('stop-sheet');
+  document.body.appendChild(sheet); // outside #view, which goes inert while the sheet is open
   let closeTimer = 0;
   const closeSheet = () => {
+    if (sheet.hidden) return;
     sheet.classList.remove('sheet--open');
+    overlayClose();
     view.querySelectorAll('.map__city--selected').forEach((m) => m.classList.remove('map__city--selected'));
     clearTimeout(closeTimer);
     closeTimer = setTimeout(() => { sheet.hidden = true; }, reducedMotion.matches ? 0 : 320);
@@ -425,7 +439,7 @@ function renderMap() {
     const c = cities.find((x) => x.id === id);
     const first = days[c.days[0] - 1]; const last = days[c.days.at(-1) - 1];
     const isHere = here && here.id === id;
-    document.getElementById('sheet-img').src = c.photo;
+    const sheetImg = document.getElementById('sheet-img'); sheetImg.src = c.photo; sheetImg.alt = cityAlt(c);
     document.getElementById('sheet-title').textContent = `${c.name}, ${c.country}`;
     document.getElementById('sheet-meta').textContent = `Day${c.days.length > 1 ? 's' : ''} ${c.days[0]}${c.days.length > 1 ? `–${c.days.at(-1)}` : ''} · ${clock.shortDate(first.date)}${c.days.length > 1 ? ` to ${clock.shortDate(last.date)}` : ''}${isHere ? ' · They are here now' : ''}`;
     document.getElementById('sheet-hotel').innerHTML = `<strong>Staying at</strong> ${esc(c.hotel)}`;
@@ -435,6 +449,7 @@ function renderMap() {
     view.querySelectorAll('.map__city--selected').forEach((m) => m.classList.remove('map__city--selected'));
     view.querySelector(`.map__city[data-stop="${id}"]`)?.classList.add('map__city--selected');
     clearTimeout(closeTimer);
+    if (sheet.hidden) overlayOpen();
     sheet.hidden = false;
     setTimeout(() => sheet.classList.add('sheet--open'), 20); // next frame, so the transition runs
     sheet.querySelector('[data-close].btn').focus({ preventScroll: true });
@@ -451,7 +466,7 @@ function renderHotels() {
     const first = days[h.days[0] - 1]; const last = days[h.days.at(-1) - 1];
     const photos = hotelPhotos(h.name);
     return `<section class="card stack">
-      <div class="gallery" id="gallery-${meta.slug}" aria-label="${esc(h.name)} photos">${photos.map((p) => `<img src="${p}" alt="" loading="lazy">`).join('')}</div>
+      <div class="gallery" id="gallery-${meta.slug}" aria-label="${esc(h.name)} photos">${photos.map((p, i) => `<img src="${p}" alt="${esc(hotelAlts(h.name)[i] || h.name)}" loading="lazy" decoding="async">`).join('')}</div>
       ${photos.length > 1 ? `<div class="gallery__nav"><span class="gallery__hint">${photos.length} photos</span>
         <span class="gallery__btns">
           <button type="button" class="gallery__btn" data-gallery="gallery-${meta.slug}" data-dir="-1" aria-label="Previous photo">${icon('i-left')}</button>
@@ -510,37 +525,38 @@ function renderInfo() {
   view.innerHTML = `
     <h1 class="h1">Info &amp; help</h1>
     <section class="card">
-      <div class="card__title">Help, any time</div>
+      <h2 class="card__title">Help, any time</h2>
       <ul class="kv">
         <li><b>Your Kensington expert</b><span>${esc(trip.operator.expert)}</span><a class="tel" href="tel:+1${tel}">${icon('i-phone')} ${esc(trip.operator.phone)}</a></li>
         <li><b>24/7 in-destination support</b><span>${esc(trip.operator.note)}</span></li>
       </ul>
     </section>
     <section class="card card--muted">
-      <div class="card__title">Right now</div>
+      <h2 class="card__title">Right now</h2>
       <p class="lead">${standing}</p>
       <p>It's ${clock.timeInZone(t, TZ)} on ${weekdayInZone(t, TZ)} there.${viewerTZ !== TZ ? ` Everything in this guide is in local time (UTC+7).` : ''}</p>
       <p class="meta">${saved} Version ${APP_VERSION}.</p>
     </section>
-    ${essentials.map((e) => `<section class="card"><div class="card__title">${esc(e.heading)}</div>
+    ${essentials.map((e) => `<section class="card"><h2 class="card__title">${esc(e.heading)}</h2>
       <ul class="check">${e.items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul></section>`).join('')}
     <section class="card">
-      <div class="card__title">Put it on your home screen</div>
+      <h2 class="card__title">Put it on your home screen</h2>
       <p><strong>iPhone:</strong> open this page in Safari, tap Share, then <em>Add to Home Screen</em>.</p>
       <p><strong>Android:</strong> open in Chrome, tap the three dots, then <em>Add to Home screen</em>.</p>
       <p class="meta">Do it once on Wi-Fi. After that it opens like an app and works anywhere.</p>
     </section>
     <section class="card">
-      <div class="card__title">Print or preview</div>
+      <h2 class="card__title">Print or preview</h2>
       <div class="btn-row">
         <a class="btn btn--ghost" href="#/print">Print all 16 days</a>
       </div>
-      <form class="field" id="preview-form" style="margin-top:var(--sp-4)">
+      <details class="fold" style="margin-top:var(--sp-4)"><summary>For Adam: preview a date</summary>
+      <form class="field" id="preview-form">
         <label for="preview-date">Preview the guide on a date</label>
         <input id="preview-date" type="date" min="${trip.start}" max="${clock.addDays(trip.end, 1)}" value="${st.phase === 'during' ? st.today : trip.start}">
         <div class="btn-row"><button class="btn btn--ghost" type="submit">Preview that day</button>
         ${previewing ? `<a class="btn" href="${location.pathname}#/today">Back to the real today</a>` : ''}</div>
-      </form>
+      </form></details>
     </section>
     <p class="meta">Photos courtesy of Kensington Tours. Built with love for Mom &amp; Dad.</p>`;
   document.getElementById('preview-form').addEventListener('submit', (e) => {
@@ -555,7 +571,7 @@ function renderPrint() {
     <section class="print-day stack">
       ${heroHtml(d, { isToday: false })}
       ${badgesHtml(badgesFor(d))}
-      <section class="card"><div class="card__title">The plan</div>${timelineHtml(d)}</section>
+      <section class="card"><h2 class="card__title">The plan</h2>${timelineHtml(d)}</section>
       ${hotelCard(d)}
       ${notesHtml(d)}
       <section class="card"><div class="prose">${d.body.map((p) => `<p>${esc(p)}</p>`).join('')}</div></section>
@@ -563,9 +579,33 @@ function renderPrint() {
   setTimeout(() => window.print(), 400);
 }
 
+/**
+ * Everything an overlay needs to be a real dialog: the page behind it is
+ * inert (no tabbing into the tab bar), the page cannot scroll, and focus
+ * returns to whatever opened it. Used by the stop sheet and the lightbox.
+ */
+const overlay = { opener: null, depth: 0 };
+const BEHIND = () => [document.getElementById('view'), document.querySelector('.top'), document.querySelector('.tabs')];
+function overlayOpen() {
+  if (overlay.depth++ === 0) {
+    overlay.opener = document.activeElement;
+    BEHIND().forEach((el) => { if (el) el.inert = true; });
+    document.body.style.overflow = 'hidden';
+  }
+}
+function overlayClose() {
+  if (overlay.depth === 0) return;
+  if (--overlay.depth === 0) {
+    BEHIND().forEach((el) => { if (el) el.inert = false; });
+    document.body.style.overflow = '';
+    overlay.opener?.focus?.({ preventScroll: true });
+    overlay.opener = null;
+  }
+}
+
 /** Full-screen photo viewer for galleries and day heroes. One instance, reused. */
-let lightbox = null; let lbSrcs = []; let lbIndex = 0;
-function openLightbox(srcs, index = 0) {
+let lightbox = null; let lbSrcs = []; let lbAlts = []; let lbIndex = 0;
+function openLightbox(srcs, index = 0, alts = []) {
   if (!lightbox) {
     lightbox = document.createElement('div');
     lightbox.className = 'lightbox';
@@ -578,11 +618,11 @@ function openLightbox(srcs, index = 0) {
     document.body.appendChild(lightbox);
     const show = (i) => {
       lbIndex = (i + lbSrcs.length) % lbSrcs.length;
-      lightbox.querySelector('.lightbox__img').src = lbSrcs[lbIndex];
+      const im = lightbox.querySelector('.lightbox__img'); im.src = lbSrcs[lbIndex]; im.alt = lbAlts[lbIndex] || '';
       lightbox.querySelector('.lightbox__count').textContent = lbSrcs.length > 1 ? `${lbIndex + 1} of ${lbSrcs.length}` : '';
       lightbox.classList.toggle('lightbox--single', lbSrcs.length < 2);
     };
-    const close = () => { lightbox.classList.remove('lightbox--open'); setTimeout(() => { lightbox.hidden = true; }, reducedMotion.matches ? 0 : 220); };
+    const close = () => { if (lightbox.hidden) return; lightbox.classList.remove('lightbox--open'); overlayClose(); setTimeout(() => { lightbox.hidden = true; }, reducedMotion.matches ? 0 : 220); };
     lightbox.querySelector('.lightbox__close').addEventListener('click', close);
     lightbox.querySelector('.lightbox__nav--prev').addEventListener('click', () => show(lbIndex - 1));
     lightbox.querySelector('.lightbox__nav--next').addEventListener('click', () => show(lbIndex + 1));
@@ -602,8 +642,9 @@ function openLightbox(srcs, index = 0) {
     }, { passive: true });
     lightbox.show = show; lightbox.close = close;
   }
-  lbSrcs = srcs;
+  lbSrcs = srcs; lbAlts = alts;
   lightbox.show(index);
+  overlayOpen();
   lightbox.hidden = false;
   setTimeout(() => lightbox.classList.add('lightbox--open'), 20);
   lightbox.querySelector('.lightbox__close').focus({ preventScroll: true });
@@ -613,14 +654,14 @@ function openLightbox(srcs, index = 0) {
 function bindLightbox() {
   view.querySelectorAll('.gallery').forEach((g) => {
     const imgs = [...g.querySelectorAll('img')];
-    imgs.forEach((img, i) => { img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', 'See photo full screen');
-      img.addEventListener('click', () => openLightbox(imgs.map((x) => x.src), i));
-      img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(imgs.map((x) => x.src), i); } }); });
+    imgs.forEach((img, i) => { img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', `${img.alt}. See it full screen`);
+      img.addEventListener('click', () => openLightbox(imgs.map((x) => x.src), i, imgs.map((x) => x.alt)));
+      img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(imgs.map((x) => x.src), i, imgs.map((x) => x.alt)); } }); });
   });
   view.querySelectorAll('.hero:not(.hero--map) .hero__img').forEach((img) => {
-    img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', 'See photo full screen');
-    img.addEventListener('click', () => openLightbox([img.src], 0));
-    img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox([img.src], 0); } });
+    img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', `${img.alt}. See it full screen`);
+    img.addEventListener('click', () => openLightbox([img.src], 0, [img.alt]));
+    img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox([img.src], 0, [img.alt]); } });
   });
 }
 
@@ -641,6 +682,7 @@ function countUp(el, target) {
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let lastDay = null;
+let quietRender = false; // true for re-renders the user did not ask for (waking the phone): no replayed animations
 
 /** Replay an entrance animation on the view: 'forward' | 'back' | 'settle'. */
 function enter(kind) {
@@ -650,6 +692,8 @@ function enter(kind) {
 }
 
 function route() {
+  document.getElementById('stop-sheet')?.remove(); // a sheet parked in <body> by the Map screen
+  while (overlay.depth) overlayClose();
   const hash = location.hash || '#/today';
   const [, section = 'today', arg] = hash.split('/');
   let tab = section;
@@ -669,7 +713,8 @@ function route() {
   }
   view.className = `view view--${section}`;
   const dayNow = /^#\/day\/(\d+)/.exec(location.hash) ? parseInt(arg, 10) : (section === 'today' && status().phase === 'during' ? status().day : null);
-  if (dayNow !== null && dayBefore !== null && dayNow !== dayBefore) { enter(dayNow > dayBefore ? 'forward' : 'back'); navigator.vibrate?.(8); }
+  if (quietRender) { /* no entrance on a wake-up re-render */ }
+  else if (dayNow !== null && dayBefore !== null && dayNow !== dayBefore) { enter(dayNow > dayBefore ? 'forward' : 'back'); navigator.vibrate?.(8); }
   else if (section !== 'driver') enter('settle');
   lastDay = dayNow;
   document.querySelectorAll('.tabs a').forEach((a) => {
@@ -722,7 +767,7 @@ document.addEventListener('visibilitychange', () => {
   const away = Date.now() - lastSeen;
   const onDay = /^#\/(today|day)/.test(location.hash) || !location.hash;
   if (onDay && away > 3 * 3_600_000) location.hash = '#/today';
-  route();
+  quietRender = true; route(); quietRender = false;
 });
 
 // Swipe is a bonus on the day screen, never the only way: the buttons stay.
@@ -761,11 +806,19 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
   let reloading = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => { if (!reloading) { reloading = true; location.reload(); } });
+  // First install: the worker reports how many files it has saved so far.
+  navigator.serviceWorker.addEventListener('message', (e) => {
+    if (e.data?.type !== 'precache') return;
+    if (e.data.done < e.data.total) showToast(`Saving for offline… ${e.data.done} of ${e.data.total}`, null, null, true);
+    else showToast('Saved. The guide now works without a signal.');
+  });
 }
 
-function showToast(text, action, onAction) {
+let toastTimer = 0;
+function showToast(text, action, onAction, sticky = false) {
   toast.innerHTML = `<span>${esc(text)}</span>${action ? `<button type="button">${esc(action)}</button>` : ''}`;
   toast.hidden = false;
   toast.querySelector('button')?.addEventListener('click', () => { toast.hidden = true; onAction?.(); });
-  if (!action) setTimeout(() => { toast.hidden = true; }, 4000);
+  clearTimeout(toastTimer);
+  if (!action && !sticky) toastTimer = setTimeout(() => { toast.hidden = true; }, 4000);
 }

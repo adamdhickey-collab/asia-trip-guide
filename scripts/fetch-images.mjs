@@ -12,7 +12,8 @@
 import { mkdir, writeFile, stat } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
-const CDN = 'https://media.kensingtontours.com/image/upload/q_auto:good,f_jpg,w_1200,c_limit/';
+// 1000px wide is sharp on a 2x phone and about a third smaller than 1200px.
+const CDN = 'https://media.kensingtontours.com/image/upload/q_auto:good,f_jpg,w_1000,c_limit/';
 
 export const images = [
   // --- covers (from the quote's summary strip) ---
