@@ -3,13 +3,17 @@
 // at roughly 1° resolution: recognisable at phone size, never for navigation.
 
 export const cities = [
-  { id: 'hanoi', name: 'Hanoi', country: 'Vietnam', lat: 21.0227, lon: 105.8501, days: [1, 2, 3], hotel: 'Oriental Jade Hotel' },
-  { id: 'halong', name: 'Halong Bay', country: 'Vietnam', lat: 20.9, lon: 107.2, days: [4, 5], hotel: 'Lyra Grandeur Cruise' },
-  { id: 'hcmc', name: 'Ho Chi Minh City', country: 'Vietnam', lat: 10.75, lon: 106.6667, days: [6, 7], hotel: 'Caravelle Saigon' },
-  { id: 'siemreap', name: 'Siem Reap', country: 'Cambodia', lat: 13.3622, lon: 103.8597, days: [8, 9, 10], hotel: 'Jaya House River Park' },
-  { id: 'chiangmai', name: 'Chiang Mai', country: 'Thailand', lat: 18.7889, lon: 98.9833, days: [11, 12, 13], hotel: 'Amanor Hotel Chiang Mai' },
-  { id: 'bangkok', name: 'Bangkok', country: 'Thailand', lat: 13.75, lon: 100.4833, days: [14, 15, 16], hotel: 'Avani+ Riverside Bangkok Hotel' },
+  { id: 'hanoi', name: 'Hanoi', country: 'Vietnam', lat: 21.0227, lon: 105.8501, days: [1, 2, 3], hotel: 'Oriental Jade Hotel', photo: 'img/cover/hanoi-raft.jpg' },
+  { id: 'halong', name: 'Halong Bay', country: 'Vietnam', lat: 20.9, lon: 107.2, days: [4, 5], hotel: 'Lyra Grandeur Cruise', photo: 'img/cover/halong-junk.jpg' },
+  { id: 'hcmc', name: 'Ho Chi Minh City', country: 'Vietnam', lat: 10.75, lon: 106.6667, days: [6, 7], hotel: 'Caravelle Saigon', photo: 'img/days/d07.jpg' },
+  { id: 'siemreap', name: 'Siem Reap', country: 'Cambodia', lat: 13.3622, lon: 103.8597, days: [8, 9, 10], hotel: 'Jaya House River Park', photo: 'img/days/d09.jpg' },
+  { id: 'chiangmai', name: 'Chiang Mai', country: 'Thailand', lat: 18.7889, lon: 98.9833, days: [11, 12, 13], hotel: 'Amanor Hotel Chiang Mai', photo: 'img/days/d12.jpg' },
+  { id: 'bangkok', name: 'Bangkok', country: 'Thailand', lat: 13.75, lon: 100.4833, days: [14, 15, 16], hotel: 'Avani+ Riverside Bangkok Hotel', photo: 'img/days/d15.jpg' },
 ];
+
+// Where each stop's photo sits relative to its point, in map units, so
+// neighbours (Hanoi and Halong Bay are 35 units apart) never overlap.
+export const photoOffsets = { hanoi: [-40, -26], halong: [42, 24], hcmc: [36, 26], siemreap: [36, -34], chiangmai: [40, -26], bangkok: [-36, 30] };
 
 // Legs in travel order. mode: 'road' | 'boat' | 'air'. `via` is a stop with no overnight.
 export const legs = [

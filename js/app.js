@@ -5,7 +5,7 @@
 // `?date=YYYY-MM-DD` on the URL previews any day (see clock.resolveNow).
 
 import { trip, days, hotels, essentials } from './itinerary.js';
-import { cities, legs, outlines } from './places.js';
+import { cities, legs, outlines, photoOffsets } from './places.js';
 import * as clock from './clock.js';
 import { APP_VERSION } from './version.js';
 
@@ -300,7 +300,6 @@ const LON0 = 97; const LON1 = 111; const LAT1 = 23.5; const K = 360 / (LON1 - LO
 const px = (lon) => (lon - LON0) * K;
 const py = (lat) => (LAT1 - lat) * K;
 const MAP_H = py(5.5);
-const LABELS = { hanoi: [-10, -14, 'end'], halong: [8, 18, 'start'], hcmc: [-12, 6, 'end'], siemreap: [-12, -12, 'end'], chiangmai: [12, 2, 'start'], bangkok: [-12, 16, 'end'] };
 const COUNTRY_LABELS = [['THAILAND', 15.6, 100.4], ['CAMBODIA', 11.7, 105.3], ['LAOS', 19.4, 102.5], ['VIETNAM', 15.6, 110.6, 'end']];
 
 /**
@@ -322,20 +321,33 @@ function mapSvg({ here = null, unfold = false, day = null, link = false } = {}) 
     const len = Math.hypot(dx, dy); const cx = mx - dy / len * len * 0.18; const cy = my + dx / len * len * 0.18;
     return `<path class="map__leg map__leg--air"${style} d="M${x1} ${y1}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2} ${y2}"/>`;
   }).join('');
+  // Each stop is a round photo of its highlight with a day pill under it,
+  // tied to the exact point by a short leader line. R and the pill are in
+  // map units (the SVG is 360 wide), not CSS pixels.
+  const R = 22; const PILL_H = 17;
   const markers = cities.map((c) => {
-    const [dx, dy, anchor] = LABELS[c.id];
     const x = px(c.lon); const y = py(c.lat);
+    const [ox, oy] = photoOffsets[c.id];
+    const cx = x + ox; const cy = y + oy;
     const isHere = here && here.id === c.id;
     const target = isHere ? day : c.days[0];
     const style = unfold ? ` style="--i:${cityStep[c.id]}"` : '';
-    // Inside a linked map the markers are plain groups: one tap, one destination.
     const tag = link ? 'g' : 'a';
     const attrs = link ? '' : ` href="#/day/${target}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
+    const pillText = isHere ? String(day) : (c.days.length > 1 ? `${c.days[0]}–${c.days.at(-1)}` : String(c.days[0]));
+    const pillW = 12 + pillText.length * 7;
+    const clipId = `clip-${link ? 'home' : 'map'}-${c.id}`;
     return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}"${style}${attrs}>
-      <circle class="map__hit" cx="${x}" cy="${y}" r="24"/>
-      ${isHere ? `<circle class="map__pulse" cx="${x}" cy="${y}" r="9"/>` : ''}
-      <circle cx="${x}" cy="${y}" r="${isHere ? 8 : 6.5}"/>
-      <text x="${x + dx}" y="${y + dy + 4}" text-anchor="${anchor}">${esc(c.name)}</text>
+      <line class="map__leader" x1="${x}" y1="${y}" x2="${cx}" y2="${cy}"/>
+      <circle class="map__point" cx="${x}" cy="${y}" r="3.5"/>
+      ${isHere ? `<circle class="map__pulse" cx="${cx}" cy="${cy}" r="${R}"/>` : ''}
+      <clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>
+      <image href="${c.photo}" x="${cx - R}" y="${cy - R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
+      <circle class="map__ring" cx="${cx}" cy="${cy}" r="${R}"/>
+      <rect class="map__pill" x="${cx - pillW / 2}" y="${cy + R - PILL_H / 2}" width="${pillW}" height="${PILL_H}" rx="${PILL_H / 2}"/>
+      <text class="map__pill-text" x="${cx}" y="${cy + R + 4}" text-anchor="middle">${pillText}</text>
+      <text class="map__name" x="${cx}" y="${cy + R + PILL_H + 8}" text-anchor="middle">${esc(c.name)}</text>
+      <circle class="map__hit" cx="${cx}" cy="${cy}" r="${R + 8}"/>
     </${tag}>`;
   }).join('');
   const countryLabels = COUNTRY_LABELS.map(([t, la, lo, an]) => `<text class="map__label" x="${px(lo)}" y="${py(la)}" text-anchor="${an || 'middle'}">${t}</text>`).join('');
