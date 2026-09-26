@@ -455,6 +455,13 @@ function renderMap() {
     sheet.querySelector('[data-close].btn').focus({ preventScroll: true });
   };
   view.querySelectorAll('[data-stop]').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); openSheet(el.dataset.stop); }));
+  // Hovering a marker lights up its list row, and hovering a row lights up its marker.
+  view.querySelectorAll('[data-stop]').forEach((el) => {
+    const twin = () => [...view.querySelectorAll(`[data-stop="${el.dataset.stop}"]`)].filter((x) => x !== el);
+    const cls = (x) => (x.classList.contains('cityrow') ? 'cityrow--hover' : 'map__city--hover');
+    el.addEventListener('mouseenter', () => twin().forEach((x) => x.classList.add(cls(x))));
+    el.addEventListener('mouseleave', () => twin().forEach((x) => x.classList.remove(cls(x))));
+  });
   sheet.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', closeSheet));
   sheet.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 }
