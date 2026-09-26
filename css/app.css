@@ -163,7 +163,9 @@ h1, h2, h3, p, ul, ol { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
-svg[hidden] { display: none; }
+/* An author display value would otherwise beat the hidden attribute, and a
+   hidden full-screen overlay that still renders swallows every tap beneath it. */
+[hidden] { display: none !important; }
 svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
