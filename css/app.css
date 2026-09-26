@@ -92,10 +92,13 @@
   --slide: 1.5rem;        /* how far a day slides in from the side it came from */
   --press: 0.97;          /* every tappable thing shrinks to this while pressed */
   --dot: 0.35rem;         /* the active-tab marker */
-  --promo-map: 15rem;     /* the map as a picture on the countdown hero */
+  --promo-map: 17rem;     /* the map as a picture on the countdown hero */
   --promo-cta: 22rem;     /* and the button under it */
   --promo-map-wide: 19rem; /* the promo map on an iPad */
-  --stagger: 160ms;       /* gap between stops as the route draws itself */
+  --stagger: 340ms;       /* gap between legs as the route draws itself */
+  --draw: 520ms;          /* how long one leg takes to draw */
+  --seg-h: 0.4rem;        /* the trip progress strip */
+  --select: 1.12;         /* a selected map stop grows to this */
   --maxw: 40rem;
   --maxw-wide: 64rem;     /* iPad and landscape phones */
   --bp-wide: 48rem;       /* two-column layouts from here up (documentation; media queries cannot read tokens) */
@@ -275,8 +278,6 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .hero__band .pill { background: rgb(255 255 255 / 0.18); }
 .hero__promo { display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-5); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
 .hero__promo:active { transform: scale(var(--press)); }
-.hero__promo .map__label { display: none; }
-.hero__promo .map__name { font-size: 17px; }
 .hero__cta { width: 100%; max-width: var(--promo-cta); font-size: var(--fs-h3); box-shadow: var(--shadow); }
 
 /* --- badges -------------------------------------------------------------- */
@@ -348,6 +349,8 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .map__pill { fill: var(--brand); stroke: var(--bg-card); stroke-width: 2; }
 .map__pill-text { font-family: var(--font-body); font-size: 11px; font-weight: 700; fill: var(--brand-fg); stroke: none; }
 .map__name { font-family: var(--font-body); font-size: 13px; font-weight: 700; fill: var(--fg); stroke: var(--brand-soft); stroke-width: 4px; stroke-linejoin: round; paint-order: stroke; }
+.map--big .map__pill-text { font-size: 16px; }
+.map--big .map__name { font-size: 22px; stroke-width: 5px; }
 .map__city--here .map__pill { fill: var(--accent); }
 .map__city--here .map__pill-text { fill: var(--accent-fg); }
 .map__city--here .map__point { fill: var(--accent); }
@@ -356,11 +359,61 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.6; } 100% { transform: scale(2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .map__pulse { animation: none; opacity: 0.35; transform: scale(1.6); } }
 .map__city .map__hit { fill: transparent; stroke: none; }
-/* The route draws itself on the countdown screen: each leg, then the city
-   it reaches, in travel order. Reduced motion zeroes the durations. */
-@keyframes map-in { to { opacity: 1; } }
-.map--unfold .map__leg, .map--unfold .map__city { opacity: 0; animation: map-in var(--dur-slow) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
-@media (prefers-reduced-motion: reduce) { .map--unfold .map__leg, .map--unfold .map__city { animation-delay: 0s; } }
+/* The route draws itself: a mask over each leg is a copy of the same path
+   whose dash offset runs from 1 to 0 (pathLength=1), leg by leg in travel
+   order; each stop pops in as its leg arrives. Reduced motion zeroes it all. */
+@keyframes draw { to { stroke-dashoffset: 0; } }
+@keyframes city-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+.map__draw { fill: none; stroke: #fff; stroke-width: 14; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw var(--draw) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.map--unfold .map__city { opacity: 0; transform-box: fill-box; transform-origin: center; animation: city-in var(--dur-slow) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger) + var(--draw) * min(var(--i, 0), 1)); }
+/* Country names are there from the first frame, then settle back once the
+   route is complete so the callouts take the stage without the names leaving. */
+@keyframes label-settle { to { opacity: 0.5; } }
+.map--unfold .map__label { animation: label-settle var(--dur-slow) var(--ease-out) forwards; animation-delay: calc(var(--legs, 7) * var(--stagger) + var(--draw)); }
+.map--big .map__label { font-size: 15px; }
+@media (prefers-reduced-motion: reduce) { .map__draw, .map--unfold .map__city, .map--unfold .map__label { animation-delay: 0s; } }
+.map__leg--upcoming { opacity: 0.4; }
+.map__city { transition: transform var(--dur) var(--ease-out); transform-box: fill-box; transform-origin: center; }
+.map__city--selected { transform: scale(var(--select)); }
+.map__city--selected .map__ring { stroke: var(--accent); stroke-width: 4; }
+.legend i.faint { opacity: 0.4; }
+
+/* --- stop sheet ------------------------------------------------------------ */
+.sheet { position: fixed; inset: 0; z-index: 30; display: grid; align-items: end; }
+.sheet__backdrop { position: absolute; inset: 0; background: var(--hero-overlay); opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+.sheet__panel { position: relative; width: 100%; max-width: var(--maxw); margin: 0 auto; background: var(--bg-card); border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--shadow); overflow: hidden; transform: translateY(100%); transition: transform var(--dur-slow) var(--ease-out); padding-bottom: env(safe-area-inset-bottom); }
+.sheet--open .sheet__backdrop { opacity: 1; }
+.sheet--open .sheet__panel { transform: none; }
+.sheet__img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.sheet__body { display: grid; gap: var(--sp-3); padding: var(--sp-4); }
+@media (min-width: 48rem) {
+  .sheet { align-items: center; padding: var(--sp-5); }
+  .sheet__panel { max-width: 34rem; border-radius: var(--radius-lg); transform: translateY(var(--sp-4)); opacity: 0; transition: transform var(--dur-slow) var(--ease-out), opacity var(--dur-slow) var(--ease-out); }
+  .sheet--open .sheet__panel { transform: none; opacity: 1; }
+}
+
+/* --- progress strip -------------------------------------------------------- */
+.progress { grid-column: 1 / -1; display: flex; gap: 2px; padding-top: var(--sp-2); }
+.progress__seg { flex: 1; height: var(--seg-h); border-radius: var(--radius-pill); background: var(--border); transition: background var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); }
+.progress__seg--past { background: var(--brand); }
+.progress__seg--today { background: var(--accent); }
+.progress__seg--viewing { transform: scaleY(1.8); outline: 1px solid var(--fg); }
+.progress__seg--viewing.progress__seg--today { outline: 0; }
+
+/* --- lightbox --------------------------------------------------------------- */
+.lightbox { position: fixed; inset: 0; z-index: 40; background: rgb(0 0 0 / 0.92); display: grid; place-items: center; opacity: 0; transition: opacity var(--dur) var(--ease-out); padding: var(--sp-4); }
+.lightbox--open { opacity: 1; }
+.lightbox__img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: var(--radius); transform: scale(0.96); transition: transform var(--dur-slow) var(--ease-out); }
+.lightbox--open .lightbox__img { transform: none; }
+.lightbox__close, .lightbox__nav { position: absolute; width: var(--tap); height: var(--tap); border-radius: 50%; border: 0; background: rgb(255 255 255 / 0.16); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.lightbox__close { top: max(var(--sp-4), env(safe-area-inset-top)); right: var(--sp-4); }
+.lightbox__nav { top: 50%; transform: translateY(-50%); }
+.lightbox__nav--prev { left: var(--sp-3); }
+.lightbox__nav--next { right: var(--sp-3); }
+.lightbox--single .lightbox__nav { display: none; }
+.lightbox__count { position: absolute; bottom: max(var(--sp-4), env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); color: #fff; font-size: var(--fs-meta); font-weight: 700; }
+.gallery img, .hero:not(.hero--map) .hero__img { cursor: zoom-in; }
+
 .map-link { display: block; position: relative; border-radius: var(--radius-lg); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
 .map-link:active { transform: scale(var(--press)); }
 .map-link .map__city { cursor: inherit; }

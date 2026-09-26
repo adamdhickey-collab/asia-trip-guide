@@ -191,6 +191,11 @@ function renderDay(n) {
         ${!isToday && st.phase === 'during' ? `<a class="daybar__today" href="#/today">${icon('i-sun')} Today</a>` : ''}
       </div>
       <a class="daybar__btn" href="#/day/${n + 1}" ${n === LAST ? 'aria-disabled="true"' : ''} aria-label="${isToday ? 'Tomorrow' : `Day ${Math.min(n + 1, LAST)}`}"><span>${isToday ? 'Tomorrow' : `Day ${Math.min(n + 1, LAST)}`}</span>${icon('i-right')}</a>
+      <div class="progress" role="img" aria-label="Day ${n} of ${LAST}${st.phase === 'during' ? `, today is day ${st.day}` : ''}">${days.map((d) => {
+        const past = st.phase === 'after' || (st.phase === 'during' && d.n < st.day);
+        const cls = ['progress__seg', past ? 'progress__seg--past' : '', st.phase === 'during' && d.n === st.day ? 'progress__seg--today' : '', d.n === n ? 'progress__seg--viewing' : ''].filter(Boolean).join(' ');
+        return `<span class="${cls}"></span>`;
+      }).join('')}</div>
     </nav>
     ${heroHtml(day, { isToday })}
     <div class="cols">
@@ -232,7 +237,7 @@ function renderToday() {
           <p class="hero__sub">16 days · 6 stops · 3 countries</p>
         </div>
         <a class="hero__promo" href="#/map">
-          ${mapSvg({ unfold: true, inert: true })}
+          ${mapSvg({ unfold: true, inert: true, big: true })}
           <span class="btn btn--accent btn--lg hero__cta">${icon('i-map')} Explore the route</span>
         </a>
       </section>
@@ -303,8 +308,9 @@ const COUNTRY_LABELS = [['THAILAND', 15.6, 100.4], ['CAMBODIA', 11.7, 105.3], ['
  * The route as inline SVG. `here` marks the current city (during the trip);
  * `unfold` draws the route stop by stop, used on the countdown screen.
  */
-function mapSvg({ here = null, unfold = false, day = null, link = false, inert = false } = {}) {
+function mapSvg({ here = null, unfold = false, day = null, link = false, inert = false, progress = null, big = false } = {}) {
   inert = inert || link; // a linked map, or one inside another link, has no marker links of its own
+  const prefix = inert ? 'home' : 'map';
   const land = Object.values(outlines).map((ring) => `<path class="map__land" d="M${ring.map(([la, lo]) => `${px(lo).toFixed(1)} ${py(la).toFixed(1)}`).join('L')}Z"/>`).join('');
   const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
   // Reveal order: each leg, then the city it arrives at.
@@ -313,16 +319,26 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
   const legPaths = legs.map((l, i) => {
     const a = byId[l.from]; const b = byId[l.to];
     const x1 = px(a.lon); const y1 = py(a.lat); const x2 = px(b.lon); const y2 = py(b.lat);
-    const style = unfold ? ` style="--i:${i + 1}"` : '';
-    if (l.mode !== 'air') return `<path class="map__leg"${style} d="M${x1} ${y1}L${x2} ${y2}"/>`;
-    const mx = (x1 + x2) / 2; const my = (y1 + y2) / 2; const dx = x2 - x1; const dy = y2 - y1;
-    const len = Math.hypot(dx, dy); const cx = mx - dy / len * len * 0.18; const cy = my + dx / len * len * 0.18;
-    return `<path class="map__leg map__leg--air"${style} d="M${x1} ${y1}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2} ${y2}"/>`;
+    let d;
+    if (l.mode !== 'air') d = `M${x1} ${y1}L${x2} ${y2}`;
+    else {
+      const mx = (x1 + x2) / 2; const my = (y1 + y2) / 2; const dx = x2 - x1; const dy = y2 - y1;
+      const len = Math.hypot(dx, dy); const cx = mx - dy / len * len * 0.18; const cy = my + dx / len * len * 0.18;
+      d = `M${x1} ${y1}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2} ${y2}`;
+    }
+    const upcoming = progress !== null && l.day > progress;
+    const cls = `map__leg${l.mode === 'air' ? ' map__leg--air' : ''}${upcoming ? ' map__leg--upcoming' : ''}`;
+    // When unfolding, a mask with the same path "draws" the leg: pathLength=1
+    // lets CSS animate stroke-dashoffset from 1 to 0 without knowing the length.
+    const maskId = `${prefix}-leg-${i}`;
+    const mask = unfold ? `<mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="360" height="${MAP_H.toFixed(0)}"><path class="map__draw" style="--i:${i + 1}" d="${d}" pathLength="1"/></mask>` : '';
+    return `${mask}<path class="${cls}" d="${d}"${unfold ? ` mask="url(#${maskId})"` : ''}/>`;
   }).join('');
   // Each stop is a round photo of its highlight with a day pill under it,
   // tied to the exact point by a short leader line. R and the pill are in
   // map units (the SVG is 360 wide), not CSS pixels.
-  const R = 22; const PILL_H = 17;
+  // `big` is the promo on the countdown screen, where the map is shown small.
+  const R = big ? 26 : 22; const PILL_H = big ? 23 : 17; const CH = big ? 9.5 : 7;
   const markers = cities.map((c) => {
     const x = px(c.lon); const y = py(c.lat);
     const [ox, oy] = photoOffsets[c.id];
@@ -331,10 +347,10 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
     const target = isHere ? day : c.days[0];
     const style = unfold ? ` style="--i:${cityStep[c.id]}"` : '';
     const tag = inert ? 'g' : 'a';
-    const attrs = inert ? '' : ` href="#/day/${target}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
+    const attrs = inert ? '' : ` href="#/day/${target}" data-stop="${c.id}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
     const pillText = isHere ? String(day) : (c.days.length > 1 ? `${c.days[0]}–${c.days.at(-1)}` : String(c.days[0]));
-    const pillW = 12 + pillText.length * 7;
-    const clipId = `clip-${inert ? 'home' : 'map'}-${c.id}`;
+    const pillW = (big ? 16 : 12) + pillText.length * CH;
+    const clipId = `clip-${prefix}-${c.id}`;
     return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}"${style}${attrs}>
       <line class="map__leader" x1="${x}" y1="${y}" x2="${cx}" y2="${cy}"/>
       <circle class="map__point" cx="${x}" cy="${y}" r="3.5"/>
@@ -343,13 +359,13 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
       <image href="${c.photo}" x="${cx - R}" y="${cy - R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
       <circle class="map__ring" cx="${cx}" cy="${cy}" r="${R}"/>
       <rect class="map__pill" x="${cx - pillW / 2}" y="${cy + R - PILL_H / 2}" width="${pillW}" height="${PILL_H}" rx="${PILL_H / 2}"/>
-      <text class="map__pill-text" x="${cx}" y="${cy + R + 4}" text-anchor="middle">${pillText}</text>
-      <text class="map__name" x="${cx}" y="${cy + R + PILL_H + 8}" text-anchor="middle">${esc(c.name)}</text>
+      <text class="map__pill-text" x="${cx}" y="${cy + R + (big ? 5.5 : 4)}" text-anchor="middle">${pillText}</text>
+      <text class="map__name" x="${cx}" y="${cy + R + PILL_H + (big ? 12 : 8)}" text-anchor="middle">${esc(c.name)}</text>
       <circle class="map__hit" cx="${cx}" cy="${cy}" r="${R + 8}"/>
     </${tag}>`;
   }).join('');
   const countryLabels = COUNTRY_LABELS.map(([t, la, lo, an]) => `<text class="map__label" x="${px(lo)}" y="${py(la)}" text-anchor="${an || 'middle'}">${t}</text>`).join('');
-  const svg = `<svg class="map${unfold ? ' map--unfold' : ''}" viewBox="0 0 360 ${MAP_H.toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
+  const svg = `<svg class="map${unfold ? ' map--unfold' : ''}${big ? ' map--big' : ''}" style="--legs:${legs.length}" viewBox="0 0 360 ${MAP_H.toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
       ${land}${countryLabels}${legPaths}${markers}
     </svg>`;
   return link ? `<a class="map-link" href="#/map" aria-label="Open the full route map">${svg}<span class="map-link__hint">${icon('i-map')} Tap to explore the route</span></a>` : svg;
@@ -363,17 +379,64 @@ function stopsHtml(here = null, day = null) {
 function renderMap() {
   const st = status();
   const here = st.phase === 'during' ? cityOfDay(st.day) : null;
+  const progress = st.phase === 'during' ? st.day : st.phase === 'after' ? LAST : null;
   view.innerHTML = `
     <h1 class="h1">The route</h1>
     ${here ? `<div class="now">${icon('i-pin')}<span><strong>Day ${st.day}:</strong> Mom &amp; Dad are in ${esc(here.name)}, ${esc(here.country)}.</span></div>${nowLine()}`
       : st.phase === 'before' ? `<div class="now">${icon('i-pin')}<span>The trip starts in Hanoi on ${esc(clock.shortDate(trip.start))}.</span></div>` : ''}
-    ${mapSvg({ here, day: st.day })}
-    <div class="legend"><span><i></i> Road or boat</span><span><i class="air"></i> Flight</span>${here ? '<span><b></b> They are here</span>' : ''}</div>
-    <ol class="citylist">${cities.map((c, i) => `<li><a class="cityrow${here && here.id === c.id ? ' cityrow--here' : ''}" href="#/day/${here && here.id === c.id ? st.day : c.days[0]}">
+    ${mapSvg({ here, day: st.day, unfold: true, progress })}
+    <div class="legend"><span><i></i> Road or boat</span><span><i class="air"></i> Flight</span>${here ? '<span><b></b> They are here</span><span><i class="faint"></i> Still to come</span>' : ''}</div>
+    <p class="meta">Tap a stop on the map to see it up close.</p>
+    <ol class="citylist">${cities.map((c, i) => `<li><a class="cityrow${here && here.id === c.id ? ' cityrow--here' : ''}" href="#/day/${here && here.id === c.id ? st.day : c.days[0]}" data-stop="${c.id}">
         <span class="cityrow__n">${i + 1}</span>
         <span><strong>${esc(c.name)}</strong><br><span class="meta">Days ${c.days[0]}${c.days.length > 1 ? `–${c.days.at(-1)}` : ''} · ${esc(c.hotel)}</span></span>
         ${icon('i-right')}</a></li>`).join('')}</ol>
-    <p class="meta">The map is a sketch for orientation, not for navigation. "Open in Maps" on any hotel gives real directions when you have a signal.</p>`;
+    <p class="meta">The map is a sketch for orientation, not for navigation. "Open in Maps" on any hotel gives real directions when you have a signal.</p>
+    <div class="sheet" id="stop-sheet" hidden>
+      <div class="sheet__backdrop" data-close></div>
+      <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+        <img class="sheet__img" id="sheet-img" alt="">
+        <div class="sheet__body">
+          <h2 class="h2" id="sheet-title"></h2>
+          <p class="meta" id="sheet-meta"></p>
+          <p id="sheet-hotel"></p>
+          <div class="btn-row"><a class="btn" id="sheet-day"></a><a class="btn btn--ghost" href="#/hotels">${icon('i-bed')} Hotels</a></div>
+          <button type="button" class="btn btn--ghost btn--block" data-close>Close</button>
+        </div>
+      </div>
+    </div>`;
+
+  // Tapping a stop (on the map or in the list) opens the sheet instead of
+  // leaving the map: a look before you go.
+  const sheet = document.getElementById('stop-sheet');
+  let closeTimer = 0;
+  const closeSheet = () => {
+    sheet.classList.remove('sheet--open');
+    view.querySelectorAll('.map__city--selected').forEach((m) => m.classList.remove('map__city--selected'));
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => { sheet.hidden = true; }, reducedMotion.matches ? 0 : 320);
+  };
+  const openSheet = (id) => {
+    const c = cities.find((x) => x.id === id);
+    const first = days[c.days[0] - 1]; const last = days[c.days.at(-1) - 1];
+    const isHere = here && here.id === id;
+    document.getElementById('sheet-img').src = c.photo;
+    document.getElementById('sheet-title').textContent = `${c.name}, ${c.country}`;
+    document.getElementById('sheet-meta').textContent = `Day${c.days.length > 1 ? 's' : ''} ${c.days[0]}${c.days.length > 1 ? `–${c.days.at(-1)}` : ''} · ${clock.shortDate(first.date)}${c.days.length > 1 ? ` to ${clock.shortDate(last.date)}` : ''}${isHere ? ' · They are here now' : ''}`;
+    document.getElementById('sheet-hotel').innerHTML = `<strong>Staying at</strong> ${esc(c.hotel)}`;
+    const dayLink = document.getElementById('sheet-day');
+    dayLink.href = `#/day/${isHere ? st.day : c.days[0]}`;
+    dayLink.innerHTML = `${icon('i-sun')} ${isHere ? `Today · Day ${st.day}` : `Open Day ${c.days[0]}`}`;
+    view.querySelectorAll('.map__city--selected').forEach((m) => m.classList.remove('map__city--selected'));
+    view.querySelector(`.map__city[data-stop="${id}"]`)?.classList.add('map__city--selected');
+    clearTimeout(closeTimer);
+    sheet.hidden = false;
+    setTimeout(() => sheet.classList.add('sheet--open'), 20); // next frame, so the transition runs
+    sheet.querySelector('[data-close].btn').focus({ preventScroll: true });
+  };
+  view.querySelectorAll('[data-stop]').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); openSheet(el.dataset.stop); }));
+  sheet.querySelectorAll('[data-close]').forEach((el) => el.addEventListener('click', closeSheet));
+  sheet.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSheet(); });
 }
 
 function renderHotels() {
@@ -495,6 +558,67 @@ function renderPrint() {
   setTimeout(() => window.print(), 400);
 }
 
+/** Full-screen photo viewer for galleries and day heroes. One instance, reused. */
+let lightbox = null; let lbSrcs = []; let lbIndex = 0;
+function openLightbox(srcs, index = 0) {
+  if (!lightbox) {
+    lightbox = document.createElement('div');
+    lightbox.className = 'lightbox';
+    lightbox.hidden = true;
+    lightbox.innerHTML = `<button type="button" class="lightbox__close" aria-label="Close">${icon('i-close')}</button>
+      <img class="lightbox__img" alt="">
+      <button type="button" class="lightbox__nav lightbox__nav--prev" aria-label="Previous photo">${icon('i-left')}</button>
+      <button type="button" class="lightbox__nav lightbox__nav--next" aria-label="Next photo">${icon('i-right')}</button>
+      <div class="lightbox__count" aria-live="polite"></div>`;
+    document.body.appendChild(lightbox);
+    const show = (i) => {
+      lbIndex = (i + lbSrcs.length) % lbSrcs.length;
+      lightbox.querySelector('.lightbox__img').src = lbSrcs[lbIndex];
+      lightbox.querySelector('.lightbox__count').textContent = lbSrcs.length > 1 ? `${lbIndex + 1} of ${lbSrcs.length}` : '';
+      lightbox.classList.toggle('lightbox--single', lbSrcs.length < 2);
+    };
+    const close = () => { lightbox.classList.remove('lightbox--open'); setTimeout(() => { lightbox.hidden = true; }, reducedMotion.matches ? 0 : 220); };
+    lightbox.querySelector('.lightbox__close').addEventListener('click', close);
+    lightbox.querySelector('.lightbox__nav--prev').addEventListener('click', () => show(lbIndex - 1));
+    lightbox.querySelector('.lightbox__nav--next').addEventListener('click', () => show(lbIndex + 1));
+    lightbox.addEventListener('click', (e) => { if (e.target === lightbox) close(); });
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'ArrowRight' && lbSrcs.length > 1) show(lbIndex + 1);
+      if (e.key === 'ArrowLeft' && lbSrcs.length > 1) show(lbIndex - 1);
+    });
+    let sx = null;
+    lightbox.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; }, { passive: true });
+    lightbox.addEventListener('touchend', (e) => {
+      if (sx === null || lbSrcs.length < 2) return;
+      const dx = e.changedTouches[0].clientX - sx; sx = null;
+      if (dx < -60) show(lbIndex + 1); else if (dx > 60) show(lbIndex - 1);
+    }, { passive: true });
+    lightbox.show = show; lightbox.close = close;
+  }
+  lbSrcs = srcs;
+  lightbox.show(index);
+  lightbox.hidden = false;
+  setTimeout(() => lightbox.classList.add('lightbox--open'), 20);
+  lightbox.querySelector('.lightbox__close').focus({ preventScroll: true });
+}
+
+/** Wire every gallery photo and day hero on the current screen to the lightbox. */
+function bindLightbox() {
+  view.querySelectorAll('.gallery').forEach((g) => {
+    const imgs = [...g.querySelectorAll('img')];
+    imgs.forEach((img, i) => { img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', 'See photo full screen');
+      img.addEventListener('click', () => openLightbox(imgs.map((x) => x.src), i));
+      img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox(imgs.map((x) => x.src), i); } }); });
+  });
+  view.querySelectorAll('.hero:not(.hero--map) .hero__img').forEach((img) => {
+    img.setAttribute('role', 'button'); img.tabIndex = 0; img.setAttribute('aria-label', 'See photo full screen');
+    img.addEventListener('click', () => openLightbox([img.src], 0));
+    img.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openLightbox([img.src], 0); } });
+  });
+}
+
 /** Tick a number up from zero so the countdown reads as a live figure, not a label. */
 function countUp(el, target) {
   if (!el || reducedMotion.matches || target < 2) return;
@@ -540,7 +664,7 @@ function route() {
   }
   view.className = `view view--${section}`;
   const dayNow = /^#\/day\/(\d+)/.exec(location.hash) ? parseInt(arg, 10) : (section === 'today' && status().phase === 'during' ? status().day : null);
-  if (dayNow !== null && dayBefore !== null && dayNow !== dayBefore) enter(dayNow > dayBefore ? 'forward' : 'back');
+  if (dayNow !== null && dayBefore !== null && dayNow !== dayBefore) { enter(dayNow > dayBefore ? 'forward' : 'back'); navigator.vibrate?.(8); }
   else if (section !== 'driver') enter('settle');
   lastDay = dayNow;
   document.querySelectorAll('.tabs a').forEach((a) => {
@@ -548,6 +672,8 @@ function route() {
   });
   updateTopStatus();
   fitChrome();
+  bindLightbox();
+  lightbox?.close?.();
   window.scrollTo(0, 0);
   view.focus({ preventScroll: true });
 }
