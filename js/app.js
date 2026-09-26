@@ -84,7 +84,7 @@ function badgesFor(day) {
   return out;
 }
 const badgesHtml = (list) => list.length
-  ? `<div class="badges">${list.map((b) => `<span class="badge${b.calm ? ' badge--calm' : ''}">${icon(b.icon)}${esc(b.text)}</span>`).join('')}</div>`
+  ? `<div class="badges o-badges">${list.map((b) => `<span class="badge${b.calm ? ' badge--calm' : ''}">${icon(b.icon)}${esc(b.text)}</span>`).join('')}</div>`
   : '';
 
 function nightOf(day) {
@@ -102,14 +102,14 @@ function weekdayInZone(d, tz) {
 
 function hotelCard(day, { title = 'Tonight' } = {}) {
   if (!day.hotel) {
-    return `<section class="card card--muted"><div class="card__title">Tonight</div>
+    return `<section class="card card--muted o-hotel"><div class="card__title">Tonight</div>
       <p class="lead"><strong>Flying home.</strong> Check out of ${esc(days[day.n - 2].hotel.name)} this morning.</p></section>`;
   }
   const h = hotels.find((x) => x.name === day.hotel.name);
   const meta = HOTEL_PHOTOS[h.name];
   const city = cities.find((c) => c.id === meta.city);
   const night = nightOf(day);
-  return `<section class="card">
+  return `<section class="card o-hotel">
     <div class="card__title">${esc(title)}</div>
     <div class="hotel">
       <img class="hotel__img" src="${hotelPhotos(h.name)[0]}" alt="">
@@ -144,7 +144,7 @@ function timelineHtml(day) {
 
 function notesHtml(day) {
   if (!day.notes.length) return '';
-  return `<section class="card card--accent"><div class="card__title">Good to know</div>
+  return `<section class="card card--accent o-notes"><div class="card__title">Good to know</div>
     <ul class="notes">${day.notes.map((n) => `<li>${icon('i-check')}<span>${esc(n)}</span></li>`).join('')}</ul></section>`;
 }
 
@@ -155,7 +155,7 @@ function heroHtml(day, { isToday }) {
       <div class="hero__kicker">
         ${isToday ? `<span class="pill pill--today">${icon('i-sun')} Today</span>` : ''}
         <span class="pill">Day ${day.n} of ${LAST}</span>
-        <span>${esc(clock.longDate(day.date))}</span>
+        <span class="pill pill--plain">${esc(clock.longDate(day.date))}</span>
       </div>
       <h1 class="hero__title">${esc(day.title)}</h1>
       <p class="hero__sub">${esc(day.route || day.place)}${day.route ? '' : `, ${esc(day.country)}`}</p>
@@ -170,7 +170,7 @@ function nowLine() {
   if (viewerTZ !== TZ && here !== clock.timeInZone(t, TZ)) {
     text += ` <span class="muted">· ${here} for you</span>`;
   }
-  return `<div class="now" id="now-line">${icon('i-alarm')}<span class="now__time">${text}</span></div>`;
+  return `<div class="now o-now" id="now-line">${icon('i-alarm')}<span class="now__time">${text}</span></div>`;
 }
 
 // --- screens ---------------------------------------------------------------
@@ -185,31 +185,37 @@ function renderDay(n) {
 
   view.innerHTML = `
     <nav class="daybar" aria-label="Day navigation">
-      <a class="daybar__btn" href="#/day/${n - 1}" ${n === 1 ? 'aria-disabled="true"' : ''} aria-label="Previous day">${icon('i-left')}<span>Day ${n - 1 || 1}</span></a>
+      <a class="daybar__btn" href="#/day/${n - 1}" ${n === 1 ? 'aria-disabled="true"' : ''} aria-label="${isToday ? 'Yesterday' : `Day ${n - 1 || 1}`}">${icon('i-left')}<span>${isToday ? 'Yesterday' : `Day ${n - 1 || 1}`}</span></a>
       <div class="daybar__mid">
-        <span class="daybar__label">${esc(clock.shortDate(day.date))}</span>
+        <span class="daybar__label">Day ${n} of ${LAST}</span>
         ${!isToday && st.phase === 'during' ? `<a class="daybar__today" href="#/today">${icon('i-sun')} Today</a>` : ''}
       </div>
-      <a class="daybar__btn" href="#/day/${n + 1}" ${n === LAST ? 'aria-disabled="true"' : ''} aria-label="Next day"><span>Day ${Math.min(n + 1, LAST)}</span>${icon('i-right')}</a>
+      <a class="daybar__btn" href="#/day/${n + 1}" ${n === LAST ? 'aria-disabled="true"' : ''} aria-label="${isToday ? 'Tomorrow' : `Day ${Math.min(n + 1, LAST)}`}"><span>${isToday ? 'Tomorrow' : `Day ${Math.min(n + 1, LAST)}`}</span>${icon('i-right')}</a>
     </nav>
     ${heroHtml(day, { isToday })}
-    ${isToday ? nowLine() : ''}
-    ${badgesHtml(badgesFor(day))}
-    <section class="card"><div class="card__title">${isToday ? "Today's plan" : 'The plan'}</div>${timelineHtml(day)}</section>
-    ${hotelCard(day)}
-    ${notesHtml(day)}
-    <section class="card"><div class="card__title">About the day</div><div class="prose">${bodyText}</div></section>
-    ${tomorrow ? `<a class="card peek" href="#/day/${n + 1}">
-        <img class="peek__img" src="${dayImage(n + 1)}" alt="">
-        <div class="peek__body">
-          <div class="card__title" style="margin:0">${isToday ? 'Tomorrow' : 'Next'} · ${esc(clock.shortDate(tomorrow.date))}</div>
-          <div class="h3">${esc(tomorrow.title)}</div>
-          <div class="meta">${esc(tomorrow.route || tomorrow.place)}${tomorrowEarly ? ` · <strong>${esc(tomorrowEarly)} start</strong>` : ''}</div>
-        </div>${icon('i-right')}</a>`
-      : `<section class="card card--muted"><p class="lead"><strong>That's the whole trip.</strong> Safe travels home.</p></section>`}
-    <div class="btn-row">
-      ${n > 1 ? `<a class="btn btn--ghost" href="#/day/${n - 1}">${icon('i-left')} Day ${n - 1}</a>` : ''}
-      ${n < LAST ? `<a class="btn" href="#/day/${n + 1}">Day ${n + 1} ${icon('i-right')}</a>` : ''}
+    <div class="cols">
+      <div class="col col--main">
+        <section class="card o-plan"><div class="card__title">${isToday ? "Today's plan" : 'The plan'}</div>${timelineHtml(day)}</section>
+        <section class="card o-about"><div class="card__title">About the day</div><div class="prose">${bodyText}</div></section>
+      </div>
+      <div class="col col--side">
+        ${isToday ? nowLine() : ''}
+        ${badgesHtml(badgesFor(day))}
+        ${hotelCard(day)}
+        ${notesHtml(day)}
+        ${tomorrow ? `<a class="card peek o-peek" href="#/day/${n + 1}">
+            <img class="peek__img" src="${dayImage(n + 1)}" alt="">
+            <div class="peek__body">
+              <div class="card__title" style="margin:0">${isToday ? 'Tomorrow' : 'Next'} · ${esc(clock.shortDate(tomorrow.date))}</div>
+              <div class="h3">${esc(tomorrow.title)}</div>
+              <div class="meta">${esc(tomorrow.route || tomorrow.place)}${tomorrowEarly ? ` · <strong>${esc(tomorrowEarly)} start</strong>` : ''}</div>
+            </div>${icon('i-right')}</a>`
+          : `<section class="card card--muted o-peek"><p class="lead"><strong>That's the whole trip.</strong> Safe travels home.</p></section>`}
+      </div>
+    </div>
+    <div class="btn-row o-nav">
+      ${n > 1 ? `<a class="btn btn--ghost" href="#/day/${n - 1}">${icon('i-left')} ${isToday ? 'Yesterday' : `Day ${n - 1}`}</a>` : ''}
+      ${n < LAST ? `<a class="btn" href="#/day/${n + 1}">${isToday ? 'Tomorrow' : `Day ${n + 1}`} ${icon('i-right')}</a>` : ''}
     </div>`;
 }
 
@@ -313,7 +319,7 @@ function renderMap() {
 
   view.innerHTML = `
     <h1 class="h1">The route</h1>
-    ${here ? `<div class="now">${icon('i-pin')}<span><strong>Day ${st.day}:</strong> Mom &amp; Dad are in ${esc(here.name)}, ${esc(here.country)}.</span></div>`
+    ${here ? `<div class="now">${icon('i-pin')}<span><strong>Day ${st.day}:</strong> Mom &amp; Dad are in ${esc(here.name)}, ${esc(here.country)}.</span></div>${nowLine()}`
       : st.phase === 'before' ? `<div class="now">${icon('i-pin')}<span>The trip starts in Hanoi on ${esc(clock.shortDate(trip.start))}.</span></div>` : ''}
     <svg class="map" viewBox="0 0 360 ${MAP_H.toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
       ${land}${countryLabels}${legPaths}${markers}
@@ -333,8 +339,12 @@ function renderHotels() {
     const first = days[h.days[0] - 1]; const last = days[h.days.at(-1) - 1];
     const photos = hotelPhotos(h.name);
     return `<section class="card stack">
-      <div class="gallery" aria-label="${esc(h.name)} photos">${photos.map((p) => `<img src="${p}" alt="" loading="lazy">`).join('')}</div>
-      ${photos.length > 1 ? `<div class="gallery__hint">${photos.length} photos · slide sideways</div>` : ''}
+      <div class="gallery" id="gallery-${meta.slug}" aria-label="${esc(h.name)} photos">${photos.map((p) => `<img src="${p}" alt="" loading="lazy">`).join('')}</div>
+      ${photos.length > 1 ? `<div class="gallery__nav"><span class="gallery__hint">${photos.length} photos</span>
+        <span class="gallery__btns">
+          <button type="button" class="gallery__btn" data-gallery="gallery-${meta.slug}" data-dir="-1" aria-label="Previous photo">${icon('i-left')}</button>
+          <button type="button" class="gallery__btn" data-gallery="gallery-${meta.slug}" data-dir="1" aria-label="Next photo">${icon('i-right')}</button>
+        </span></div>` : ''}
       <h2 class="h2">${esc(h.name)}</h2>
       <p class="meta">${esc(city.name)}, ${esc(city.country)} · Days ${h.days[0]}–${h.days.at(-1)} · ${esc(clock.shortDate(first.date))} to ${esc(clock.shortDate(last.date))} · ${first.hotel.nights} night${first.hotel.nights > 1 ? 's' : ''}</p>
       <p><strong>${esc(first.hotel.room)}</strong></p>
@@ -345,6 +355,10 @@ function renderHotels() {
       </div>
     </section>`;
   }).join('')}`;
+  view.querySelectorAll('.gallery__btn').forEach((b) => b.addEventListener('click', () => {
+    const g = document.getElementById(b.dataset.gallery);
+    g.scrollBy({ left: g.clientWidth * 0.82 * Number(b.dataset.dir), behavior: 'smooth' });
+  }));
 }
 
 function renderDriver(slug) {
@@ -444,13 +458,31 @@ function route() {
     case 'print': renderPrint(); tab = 'days'; break;
     default: renderToday(); tab = 'today';
   }
+  view.className = `view view--${section}`;
   document.querySelectorAll('.tabs a').forEach((a) => {
     if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
   updateTopStatus();
+  fitChrome();
   window.scrollTo(0, 0);
   view.focus({ preventScroll: true });
 }
+
+// A phone's text-size setting is invisible to media queries, so measure:
+// if the day bar or tab bar is wider than the screen, step down a tier
+// (see the "large text" block in app.css) until everything fits.
+function fitChrome() {
+  const root = document.documentElement;
+  const bars = [document.querySelector('.tabs'), view.querySelector('.daybar'), ...view.querySelectorAll('.daybar__btn'), ...document.querySelectorAll('.tabs a')].filter(Boolean);
+  // Compare against the real viewport: on a phone an overflowing bar widens
+  // the layout viewport, so a bar can never be wider than "itself".
+  const overflows = () => bars.some((b) => b.scrollWidth > Math.min(b.clientWidth, root.clientWidth) + 1);
+  root.removeAttribute('data-text');
+  if (!overflows()) return;
+  root.dataset.text = 'large';
+  if (overflows()) root.dataset.text = 'xl';
+}
+window.addEventListener('resize', fitChrome);
 
 function updateTopStatus() {
   const st = status();

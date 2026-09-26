@@ -24,8 +24,8 @@
   --saffron-400: #f2b641; /* ink on it 10.6:1 */
   --saffron-100: #fbeacb;
   --ink-900: #1f2a28;    /* 13.6:1 */
-  --ink-600: #4a5654;    /*  7.1:1 — secondary text */
-  --ink-400: #7d8886;    /*  4.5:1 — only for decorative meta */
+  --ink-600: #4a5654;    /*  6.9:1 — secondary text (7.6:1 on a white card) */
+  --ink-400: #6b7674;    /*  4.6:1 — only for decorative meta */
   --paper: #f7f3ec;
   --card: #ffffff;
   --line: #e3dccf;
@@ -57,11 +57,13 @@
   --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, "Times New Roman", serif;
   --fs-meta: 1rem;        /* 16px: the floor, dates in lists only */
   --fs-body: 1.1875rem;   /* 19px */
+  --fs-brand: clamp(1rem, 4.6vw, 1.1875rem); /* header title: 19px on wide phones, 16px on the narrowest */
   --fs-lead: 1.3125rem;   /* 21px */
   --fs-h3: 1.375rem;      /* 22px */
   --fs-h2: 1.625rem;      /* 26px */
   --fs-h1: 2.125rem;      /* 34px */
   --fs-display: 3rem;     /* 48px: the countdown, the driver card */
+  --fs-display-xl: 4.5rem; /* 72px: the driver card on an iPad */
   --lh-tight: 1.15;
   --lh-body: 1.45;
 
@@ -82,6 +84,8 @@
   --dur: 220ms;
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
   --maxw: 40rem;
+  --maxw-wide: 64rem;     /* iPad and landscape phones */
+  --bp-wide: 48rem;       /* two-column layouts from here up (documentation; media queries cannot read tokens) */
   --tabs-h: 4.25rem;
 }
 
@@ -132,6 +136,7 @@ h1, h2, h3, p, ul, ol { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+svg[hidden] { display: none; }
 svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -144,13 +149,15 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   background: var(--brand);
   color: var(--brand-fg);
 }
-.top__brand { color: inherit; text-decoration: none; font-family: var(--font-display); font-size: var(--fs-lead); font-weight: 600; letter-spacing: 0.01em; }
-.top__status { font-size: var(--fs-meta); opacity: 0.92; text-align: right; }
+.top__brand { color: inherit; text-decoration: none; font-family: var(--font-display); font-size: var(--fs-brand); font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.top__status { font-size: var(--fs-meta); opacity: 0.92; text-align: right; white-space: nowrap; flex: none; }
 
 /* --- layout -------------------------------------------------------------- */
-.view { max-width: var(--maxw); margin: 0 auto; padding: var(--sp-4); display: grid; gap: var(--sp-4); }
+/* minmax(0, 1fr) pins the column to the container so a wide child wraps
+   instead of blowing the whole page out sideways at large text sizes. */
+.view { max-width: var(--maxw); margin: 0 auto; padding: var(--sp-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
 .view:focus { outline: none; }
-.stack { display: grid; gap: var(--sp-4); }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--sp-4); }
 .card--muted { background: var(--bg-muted); box-shadow: none; }
 .card--accent { background: var(--accent-soft); border-color: transparent; box-shadow: none; }
@@ -164,6 +171,15 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .muted { color: var(--fg-muted); }
 .meta { font-size: var(--fs-meta); color: var(--fg-muted); }
 .prose { display: grid; gap: var(--sp-3); }
+.prose, .step__detail, .hero__title, .h1, .h2, .h3 { overflow-wrap: anywhere; }
+
+/* --- day columns -----------------------------------------------------------
+   On a phone the wrappers vanish (display: contents) and `order` restores
+   the one-column reading order: plan, hotel, notes, tomorrow, about. On an
+   iPad the wrappers become two real columns. */
+.cols, .col { display: contents; }
+.o-now { order: 1; } .o-badges { order: 2; } .o-plan { order: 3; } .o-hotel { order: 4; }
+.o-notes { order: 5; } .o-peek { order: 6; } .o-about { order: 7; } .o-nav { order: 8; }
 
 /* --- buttons ------------------------------------------------------------- */
 .btn {
@@ -185,20 +201,21 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 /* --- day strip (prev / today / next) ------------------------------------- */
 .daybar {
   position: sticky; top: 0; z-index: 5;
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: var(--sp-2);
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-2);
   margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-4)) 0;
   padding: var(--sp-2) var(--sp-3);
   background: var(--bg); border-bottom: 1px solid var(--border);
+  overflow: hidden; /* never widen the page; app.js reads the clipped width and drops the captions */
 }
 .daybar__btn {
-  display: inline-flex; align-items: center; gap: var(--sp-1);
-  min-height: var(--tap); min-width: var(--tap); padding: 0 var(--sp-3);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-1);
+  min-height: var(--tap); min-width: var(--tap); padding: 0 var(--sp-3); overflow: hidden;
   border-radius: var(--radius); border: 2px solid var(--border-strong);
   background: var(--bg-card); color: var(--fg); font-weight: 700; text-decoration: none;
 }
 .daybar__btn[aria-disabled="true"] { opacity: 0.35; pointer-events: none; }
 .daybar__btn span { font-size: var(--fs-meta); }
-.daybar__mid { text-align: center; display: grid; justify-items: center; gap: var(--sp-1); }
+.daybar__mid { text-align: center; display: grid; justify-items: center; gap: var(--sp-1); min-width: 0; overflow: hidden; }
 .daybar__label { font-weight: 700; font-size: var(--fs-meta); }
 .daybar__today { text-decoration: none; white-space: nowrap; min-height: 2.25rem; padding: 0 var(--sp-3); border-radius: var(--radius-pill); background: var(--accent); color: var(--accent-fg); border: 0; font-weight: 700; font-size: var(--fs-meta); display: inline-flex; align-items: center; gap: var(--sp-1); }
 
@@ -212,6 +229,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .hero__sub { font-size: var(--fs-lead); }
 .pill { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.2em 0.7em; border-radius: var(--radius-pill); background: rgb(255 255 255 / 0.18); backdrop-filter: blur(6px); }
 .pill--today { background: var(--accent); color: var(--accent-fg); }
+.pill--plain { background: none; backdrop-filter: none; padding-inline: 0; }
 
 /* --- badges -------------------------------------------------------------- */
 .badges { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
@@ -226,38 +244,38 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- timeline ------------------------------------------------------------ */
 .timeline { display: grid; gap: 0; }
-.step { display: grid; grid-template-columns: var(--tap) 1fr; gap: var(--sp-3); padding: var(--sp-3) 0; position: relative; }
+.step { display: grid; grid-template-columns: var(--tap) minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3) 0; position: relative; }
 .step + .step { border-top: 1px solid var(--border); }
 .step__icon { width: var(--tap); height: var(--tap); border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; }
 .step__icon svg { width: 1.6rem; height: 1.6rem; }
 .step__icon--accent { background: var(--accent); color: var(--accent-fg); }
-.step__body { display: grid; gap: var(--sp-1); align-content: start; padding-top: 0.15rem; }
+.step__body { display: grid; gap: var(--sp-1); align-content: start; padding-top: 0.15rem; min-width: 0; }
 .step__kind { font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fg-muted); display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .step__time { color: var(--accent-text); }
 .step__title { font-size: var(--fs-h3); font-weight: 700; line-height: var(--lh-tight); }
 .step__detail { color: var(--fg-muted); }
 
 /* --- hotel card ---------------------------------------------------------- */
-.hotel { display: grid; grid-template-columns: 6rem 1fr; gap: var(--sp-4); align-items: start; }
+.hotel { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
 .hotel__img { width: 6rem; height: 6rem; object-fit: cover; border-radius: var(--radius); }
-.hotel__body { display: grid; gap: var(--sp-1); }
+.hotel__body { display: grid; gap: var(--sp-1); min-width: 0; }
 .hotel .btn-row { grid-column: 1 / -1; }
 
 /* --- notes --------------------------------------------------------------- */
 .notes { display: grid; gap: var(--sp-3); }
-.notes li { display: grid; grid-template-columns: 1.75rem 1fr; gap: var(--sp-2); }
+.notes li { display: grid; grid-template-columns: 1.75rem minmax(0, 1fr); gap: var(--sp-2); }
 .notes svg { color: var(--accent-text); width: 1.5rem; height: 1.5rem; margin-top: 0.15rem; }
 
 /* --- tomorrow / peek card ------------------------------------------------- */
-.peek { display: grid; grid-template-columns: 5rem 1fr auto; gap: var(--sp-3); align-items: center; text-decoration: none; color: inherit; }
+.peek { display: grid; grid-template-columns: 5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; text-decoration: none; color: inherit; }
 .peek__img { width: 5rem; height: 5rem; object-fit: cover; border-radius: var(--radius); }
-.peek__body { display: grid; gap: var(--sp-1); }
+.peek__body { display: grid; gap: var(--sp-1); min-width: 0; }
 .peek svg { color: var(--brand); }
 
 /* --- day list ------------------------------------------------------------ */
 .city-group { display: grid; gap: var(--sp-2); }
 .city-group__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-3); padding: var(--sp-3) 0 var(--sp-1); }
-.dayrow { display: grid; grid-template-columns: 4.5rem 1fr auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; min-height: var(--tap); }
+.dayrow { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; min-height: var(--tap); }
 .dayrow--today { border: 2px solid var(--accent); background: var(--accent-soft); }
 .dayrow--past { opacity: 0.72; }
 .dayrow__img { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: var(--radius); }
@@ -289,7 +307,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .legend i.air { border-top-style: dashed; }
 .legend b { width: 0.9rem; height: 0.9rem; border-radius: 50%; background: var(--accent); }
 .citylist { display: grid; gap: var(--sp-2); }
-.cityrow { display: grid; grid-template-columns: 2.5rem 1fr auto; gap: var(--sp-3); align-items: center; min-height: var(--tap); padding: var(--sp-2) var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; }
+.cityrow { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; min-height: var(--tap); padding: var(--sp-2) var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; }
 .cityrow--here { border: 2px solid var(--accent); }
 .cityrow__n { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; font-weight: 700; font-size: var(--fs-meta); }
 .cityrow--here .cityrow__n { background: var(--accent); color: var(--accent-fg); }
@@ -299,7 +317,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .gallery { display: flex; gap: var(--sp-2); overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4) var(--sp-2); scrollbar-width: none; }
 .gallery::-webkit-scrollbar { display: none; }
 .gallery img { flex: 0 0 82%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); scroll-snap-align: start; }
-.gallery__hint { font-size: var(--fs-meta); color: var(--fg-faint); }
+.gallery__nav { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
+.gallery__hint { font-size: var(--fs-meta); color: var(--fg-muted); }
+.gallery__btn { display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); border-radius: 50%; border: 2px solid var(--border-strong); background: var(--bg-card); color: var(--fg); cursor: pointer; }
+.gallery__btns { display: flex; gap: var(--sp-2); }
 
 /* --- driver card --------------------------------------------------------- */
 .driver { position: fixed; inset: 0; z-index: 20; background: var(--bg-card); color: var(--fg); display: grid; grid-template-rows: auto 1fr auto; padding: max(var(--sp-4), env(safe-area-inset-top)) var(--sp-4) max(var(--sp-4), env(safe-area-inset-bottom)); gap: var(--sp-4); }
@@ -309,11 +330,11 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- info ---------------------------------------------------------------- */
 .kv { display: grid; gap: var(--sp-3); }
-.kv li { display: grid; gap: var(--sp-1); }
+.kv li { display: grid; gap: var(--sp-1); min-width: 0; }
 .kv b { font-size: var(--fs-meta); color: var(--fg-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .tel { font-size: var(--fs-h3); font-weight: 700; }
 .check { display: grid; gap: var(--sp-2); }
-.check li { display: grid; grid-template-columns: 1.6rem 1fr; gap: var(--sp-2); }
+.check li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); gap: var(--sp-2); }
 .check svg { color: var(--brand); width: 1.4rem; height: 1.4rem; margin-top: 0.2rem; }
 .field { display: grid; gap: var(--sp-2); }
 .field input { font: inherit; min-height: var(--tap); padding: 0 var(--sp-3); border: 2px solid var(--border-strong); border-radius: var(--radius); background: var(--bg-card); color: var(--fg); }
@@ -321,19 +342,53 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 /* --- tabs ---------------------------------------------------------------- */
 .tabs {
   position: fixed; inset: auto 0 0 0; z-index: 10;
-  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
   height: calc(var(--tabs-h) + env(safe-area-inset-bottom));
   padding-bottom: env(safe-area-inset-bottom);
   background: var(--bg-card); border-top: 1px solid var(--border);
+  overflow: hidden; /* same as .daybar */
 }
-.tabs a { display: grid; justify-items: center; align-content: center; gap: 0.15rem; color: var(--fg-muted); text-decoration: none; font-size: var(--fs-meta); font-weight: 700; min-height: var(--tap); }
+/* overflow: hidden gives each tab a zero min-content, so five always fit
+   the bar's width and nothing can widen the page before app.js picks a tier. */
+.tabs a { display: grid; justify-items: center; align-content: center; gap: 0.15rem; color: var(--fg-muted); text-decoration: none; font-size: var(--fs-meta); font-weight: 700; min-height: var(--tap); min-width: 0; overflow: hidden; text-align: center; line-height: 1.1; }
 .tabs a svg { width: 1.75rem; height: 1.75rem; }
 .tabs a[aria-current="page"] { color: var(--brand-strong); }
 .tabs a[aria-current="page"] svg { stroke-width: 2.4; }
 
+/* --- large text ------------------------------------------------------------
+   Media queries cannot see a phone's text-size setting, so app.js measures
+   the day bar and tab bar after every render and sets data-text on <html>
+   when they would overflow: "large" drops the arrow captions and shrinks the
+   tab labels; "xl" hides the tab labels (their names stay for screen readers). */
+:root[data-text] .daybar__btn span { display: none; }
+:root[data-text] .daybar__btn { padding: 0 var(--sp-2); }
+:root[data-text] .top__status { display: none; }
+:root[data-text="large"] .tabs a span { font-size: 0.7em; }
+:root[data-text="xl"] .tabs a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
 /* --- toast --------------------------------------------------------------- */
 .toast { position: fixed; left: 50%; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom) + var(--sp-3)); transform: translateX(-50%); z-index: 15; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--fg); color: var(--bg); border-radius: var(--radius); box-shadow: var(--shadow); max-width: calc(100% - 2 * var(--sp-4)); }
 .toast button { min-height: 2.5rem; padding: 0 var(--sp-3); border-radius: var(--radius); border: 0; background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+
+/* --- iPad and wide screens ------------------------------------------------- */
+@media (min-width: 48rem) {
+  .view { max-width: var(--maxw-wide); padding: var(--sp-5); gap: var(--sp-5); }
+  .daybar { margin: calc(-1 * var(--sp-5)) calc(-1 * var(--sp-5)) 0; padding: var(--sp-3) var(--sp-5); }
+  .hero { min-height: 22rem; }
+  .hero__title { font-size: var(--fs-display); }
+  .cols { display: grid; grid-template-columns: 3fr 2fr; gap: var(--sp-5); align-items: start; }
+  .col { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
+  .o-now, .o-badges, .o-plan, .o-hotel, .o-notes, .o-peek, .o-about { order: 0; }
+  .view--days .city-group { grid-template-columns: 1fr 1fr; }
+  .view--days .city-group__head { grid-column: 1 / -1; }
+  .view--hotels { grid-template-columns: 1fr 1fr; align-items: start; }
+  .view--hotels > .h1 { grid-column: 1 / -1; }
+  .view--map { grid-template-columns: 3fr 2fr; align-items: start; }
+  .view--map > .h1, .view--map > .now { grid-column: 1 / -1; }
+  .view--map > .map { grid-row: span 3; }
+  .tabs { grid-auto-columns: minmax(0, 9rem); justify-content: center; }
+  .driver__name { font-size: var(--fs-display-xl); }
+}
 
 /* --- print --------------------------------------------------------------- */
 @media print {
