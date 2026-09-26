@@ -243,7 +243,7 @@ function renderToday() {
           </div>
         </div>
         <a class="hero__promo" href="#/map">
-          ${mapSvg({ unfold: !quietRender && firstDrawThisSession(), inert: true, big: true })}
+          ${mapSvg({ unfold: true, inert: true, big: true })}
           <span class="btn btn--accent btn--lg hero__cta">${icon('i-map')} Explore the route</span>
         </a>
       </section>
@@ -684,14 +684,6 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 let lastDay = null;
 let quietRender = false; // true for re-renders the user did not ask for (waking the phone): no replayed animations
 
-/** The route draws itself once per session, the first time the countdown screen opens. */
-function firstDrawThisSession() {
-  try {
-    if (sessionStorage.getItem('route-drawn')) return false;
-    sessionStorage.setItem('route-drawn', '1');
-    return true;
-  } catch { return true; }
-}
 
 /** Replay an entrance animation on the view: 'forward' | 'back' | 'settle'. */
 function enter(kind) {
