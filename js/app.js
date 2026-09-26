@@ -232,27 +232,30 @@ function renderToday() {
     view.innerHTML = `
       <section class="hero hero--map">
         <div class="hero__band">
-          <div class="hero__kicker"><span class="pill">${esc(trip.name)}</span></div>
-          <h1 class="hero__title">${esc(clock.shortDate(trip.start, false))} to ${esc(clock.shortDate(trip.end, false))}, 2027</h1>
-          <p class="hero__sub">16 days · 6 stops · 3 countries</p>
+          <img class="hero__img" src="img/cover/halong-junk.jpg" alt="">
+          <div class="hero__band-body">
+            <div class="hero__kicker"><span class="pill">${esc(trip.name)}</span></div>
+            <h1 class="hero__title">${esc(clock.shortDate(trip.start, false))} to ${esc(clock.shortDate(trip.end, false))}, 2027</h1>
+            <p class="hero__sub">16 days · 6 stops · 3 countries</p>
+          </div>
         </div>
         <a class="hero__promo" href="#/map">
           ${mapSvg({ unfold: true, inert: true, big: true })}
           <span class="btn btn--accent btn--lg hero__cta">${icon('i-map')} Explore the route</span>
         </a>
       </section>
-      <div class="cols">
+      <div class="cols cols--even">
         <div class="col col--main">
-          <a class="card peek o-3" href="#/day/1">
-            <img class="peek__img" src="${dayImage(1)}" alt="">
-            <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
-        </div>
-        <div class="col col--side">
           <section class="card count o-1">
             <div class="count__num">${st.daysUntil}</div>
             <div class="lead">${st.daysUntil === 1 ? 'day' : 'days'} to go</div>
             <p class="muted">Day 1 is ${esc(clock.longDate(d1.date))}: arrive in Hanoi.</p>
           </section>
+          <a class="card peek o-3" href="#/day/1">
+            <img class="peek__img" src="${dayImage(1)}" alt="">
+            <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
+        </div>
+        <div class="col col--side">
           <section class="card o-4"><div class="card__title">Before you go</div>
             <ul class="check">${essentials[0].items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul>
             <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
