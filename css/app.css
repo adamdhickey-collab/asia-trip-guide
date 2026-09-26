@@ -80,9 +80,15 @@
   --radius-lg: 1.25rem;
   --radius-pill: 999px;
   --shadow: 0 1px 2px rgb(31 42 40 / 0.06), 0 6px 20px rgb(31 42 40 / 0.07);
-  --dur-fast: 120ms;
-  --dur: 220ms;
+  --dur-fast: 120ms;      /* press feedback */
+  --dur: 220ms;           /* day changes, toasts */
+  --dur-slow: 320ms;      /* the driver card, the countdown */
   --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);   /* entering: decelerate */
+  --ease-in: cubic-bezier(0.55, 0, 1, 0.45);   /* leaving: accelerate */
+  --slide: 1.5rem;        /* how far a day slides in from the side it came from */
+  --press: 0.97;          /* every tappable thing shrinks to this while pressed */
+  --dot: 0.35rem;         /* the active-tab marker */
   --maxw: 40rem;
   --maxw-wide: 64rem;     /* iPad and landscape phones */
   --bp-wide: 48rem;       /* two-column layouts from here up (documentation; media queries cannot read tokens) */
@@ -113,7 +119,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur-fast: 0ms; --dur: 0ms; }
+  :root { --dur-fast: 0ms; --dur: 0ms; --dur-slow: 0ms; --slide: 0px; }
 }
 
 /* --- reset & base ---------------------------------------------------------- */
@@ -151,6 +157,25 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 }
 .top__brand { color: inherit; text-decoration: none; font-family: var(--font-display); font-size: var(--fs-brand); font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .top__status { font-size: var(--fs-meta); opacity: 0.92; text-align: right; white-space: nowrap; flex: none; }
+
+/* --- motion ----------------------------------------------------------------
+   Three entrances. Going forward a day slides in from the right, going back
+   from the left, and switching sections just settles into place. Every
+   duration is a token, and reduced-motion zeroes them all. */
+@keyframes enter-forward { from { opacity: 0; transform: translateX(var(--slide)); } to { opacity: 1; transform: none; } }
+@keyframes enter-back { from { opacity: 0; transform: translateX(calc(-1 * var(--slide))); } to { opacity: 1; transform: none; } }
+@keyframes enter-settle { from { opacity: 0; transform: translateY(var(--sp-2)); } to { opacity: 1; transform: none; } }
+@keyframes img-in { from { opacity: 0; } to { opacity: 1; } }
+.view--forward { animation: enter-forward var(--dur) var(--ease-out); }
+.view--back { animation: enter-back var(--dur) var(--ease-out); }
+.view--settle { animation: enter-settle var(--dur) var(--ease-out); }
+
+/* Press feedback for everything tappable that is not already a .btn. */
+.daybar__btn, .daybar__today, .tabs a, .dayrow, .cityrow, .peek, .gallery__btn, .map__city, .tel {
+  transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.daybar__btn:active, .daybar__today:active, .dayrow:active, .cityrow:active, .peek:active, .gallery__btn:active { transform: scale(var(--press)); }
+.tabs a:active svg { transform: scale(var(--press)); }
 
 /* --- layout -------------------------------------------------------------- */
 /* minmax(0, 1fr) pins the column to the container so a wide child wraps
@@ -221,7 +246,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- hero ---------------------------------------------------------------- */
 .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--brand-strong); min-height: 15rem; display: grid; align-items: end; box-shadow: var(--shadow); }
-.hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: img-in var(--dur-slow) var(--ease-out); }
 .hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: #fff; background: linear-gradient(to top, var(--hero-overlay) 55%, transparent); display: grid; gap: var(--sp-2); }
 .hero__body a { color: inherit; }
 .hero__kicker { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
@@ -321,9 +346,11 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .gallery__hint { font-size: var(--fs-meta); color: var(--fg-muted); }
 .gallery__btn { display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); border-radius: 50%; border: 2px solid var(--border-strong); background: var(--bg-card); color: var(--fg); cursor: pointer; }
 .gallery__btns { display: flex; gap: var(--sp-2); }
+.gallery__btn { transition: opacity var(--dur-fast); }
+.gallery__btn[aria-disabled="true"] { opacity: 0.35; pointer-events: none; }
 
 /* --- driver card --------------------------------------------------------- */
-.driver { position: fixed; inset: 0; z-index: 20; background: var(--bg-card); color: var(--fg); display: grid; grid-template-rows: auto 1fr auto; padding: max(var(--sp-4), env(safe-area-inset-top)) var(--sp-4) max(var(--sp-4), env(safe-area-inset-bottom)); gap: var(--sp-4); }
+.driver { animation: enter-settle var(--dur-slow) var(--ease-out); position: fixed; inset: 0; z-index: 20; background: var(--bg-card); color: var(--fg); display: grid; grid-template-rows: auto 1fr auto; padding: max(var(--sp-4), env(safe-area-inset-top)) var(--sp-4) max(var(--sp-4), env(safe-area-inset-bottom)); gap: var(--sp-4); }
 .driver__main { display: grid; align-content: center; gap: var(--sp-4); text-align: center; }
 .driver__name { font-family: var(--font-display); font-size: var(--fs-display); line-height: var(--lh-tight); font-weight: 600; text-wrap: balance; }
 .driver__city { font-size: var(--fs-h2); color: var(--fg-muted); }
@@ -351,9 +378,11 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 /* overflow: hidden gives each tab a zero min-content, so five always fit
    the bar's width and nothing can widen the page before app.js picks a tier. */
 .tabs a { display: grid; justify-items: center; align-content: center; gap: 0.15rem; color: var(--fg-muted); text-decoration: none; font-size: var(--fs-meta); font-weight: 700; min-height: var(--tap); min-width: 0; overflow: hidden; text-align: center; line-height: 1.1; }
-.tabs a svg { width: 1.75rem; height: 1.75rem; }
+.tabs a svg { width: 1.75rem; height: 1.75rem; transition: transform var(--dur-fast) var(--ease-out); }
 .tabs a[aria-current="page"] { color: var(--brand-strong); }
 .tabs a[aria-current="page"] svg { stroke-width: 2.4; }
+.tabs a::after { content: ""; width: var(--dot); height: var(--dot); border-radius: 50%; background: var(--accent); transform: scale(0); transition: transform var(--dur) var(--ease-out); }
+.tabs a[aria-current="page"]::after { transform: scale(1); }
 
 /* --- large text ------------------------------------------------------------
    Media queries cannot see a phone's text-size setting, so app.js measures
@@ -367,7 +396,8 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 :root[data-text="xl"] .tabs a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* --- toast --------------------------------------------------------------- */
-.toast { position: fixed; left: 50%; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom) + var(--sp-3)); transform: translateX(-50%); z-index: 15; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--fg); color: var(--bg); border-radius: var(--radius); box-shadow: var(--shadow); max-width: calc(100% - 2 * var(--sp-4)); }
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, var(--sp-3)); } to { opacity: 1; transform: translate(-50%, 0); } }
+.toast { animation: toast-in var(--dur) var(--ease-out); position: fixed; left: 50%; bottom: calc(var(--tabs-h) + env(safe-area-inset-bottom) + var(--sp-3)); transform: translateX(-50%); z-index: 15; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--fg); color: var(--bg); border-radius: var(--radius); box-shadow: var(--shadow); max-width: calc(100% - 2 * var(--sp-4)); }
 .toast button { min-height: 2.5rem; padding: 0 var(--sp-3); border-radius: var(--radius); border: 0; background: var(--accent); color: var(--accent-fg); font-weight: 700; }
 
 /* --- iPad and wide screens ------------------------------------------------- */
