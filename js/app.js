@@ -245,6 +245,7 @@ function renderToday() {
         <ul class="check">${essentials[0].items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul>
         <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
       </section>`;
+    countUp(view.querySelector('.count__num'), st.daysUntil);
     return;
   }
   view.innerHTML = `
@@ -357,8 +358,20 @@ function renderHotels() {
   }).join('')}`;
   view.querySelectorAll('.gallery__btn').forEach((b) => b.addEventListener('click', () => {
     const g = document.getElementById(b.dataset.gallery);
-    g.scrollBy({ left: g.clientWidth * 0.82 * Number(b.dataset.dir), behavior: 'smooth' });
+    g.scrollBy({ left: g.clientWidth * 0.82 * Number(b.dataset.dir), behavior: reducedMotion.matches ? 'auto' : 'smooth' });
   }));
+  view.querySelectorAll('.gallery').forEach((g) => {
+    const btns = view.querySelectorAll(`.gallery__btn[data-gallery="${g.id}"]`);
+    const update = () => {
+      // The strip has side padding and snaps to it, so "the start" is one padding in.
+      const pad = parseFloat(getComputedStyle(g).paddingLeft) || 0;
+      const atStart = g.scrollLeft <= pad + 2; const atEnd = g.scrollLeft + g.clientWidth >= g.scrollWidth - pad - 2;
+      btns.forEach((b) => b.setAttribute('aria-disabled', String(b.dataset.dir === '-1' ? atStart : atEnd)));
+    };
+    let timer = 0;
+    g.addEventListener('scroll', () => { clearTimeout(timer); timer = setTimeout(update, 80); }, { passive: true });
+    update();
+  });
 }
 
 function renderDriver(slug) {
@@ -439,12 +452,36 @@ function renderPrint() {
   setTimeout(() => window.print(), 400);
 }
 
+/** Tick a number up from zero so the countdown reads as a live figure, not a label. */
+function countUp(el, target) {
+  if (!el || reducedMotion.matches || target < 2) return;
+  const ms = 700; const t0 = performance.now();
+  const tick = (t) => {
+    const p = Math.min(1, (t - t0) / ms);
+    const eased = 1 - (1 - p) ** 3;
+    el.textContent = Math.round(target * eased);
+    if (p < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
 // --- router ----------------------------------------------------------------
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let lastDay = null;
+
+/** Replay an entrance animation on the view: 'forward' | 'back' | 'settle'. */
+function enter(kind) {
+  view.classList.remove('view--forward', 'view--back', 'view--settle');
+  void view.offsetWidth; // restart the animation even if the class repeats
+  view.classList.add(`view--${kind}`);
+}
 
 function route() {
   const hash = location.hash || '#/today';
   const [, section = 'today', arg] = hash.split('/');
   let tab = section;
+  const dayBefore = lastDay;
   switch (section) {
     case 'day': {
       const n = Math.min(LAST, Math.max(1, parseInt(arg, 10) || 1));
@@ -459,6 +496,10 @@ function route() {
     default: renderToday(); tab = 'today';
   }
   view.className = `view view--${section}`;
+  const dayNow = /^#\/day\/(\d+)/.exec(location.hash) ? parseInt(arg, 10) : (section === 'today' && status().phase === 'during' ? status().day : null);
+  if (dayNow !== null && dayBefore !== null && dayNow !== dayBefore) enter(dayNow > dayBefore ? 'forward' : 'back');
+  else if (section !== 'driver') enter('settle');
+  lastDay = dayNow;
   document.querySelectorAll('.tabs a').forEach((a) => {
     if (a.dataset.tab === tab) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
