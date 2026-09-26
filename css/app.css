@@ -89,6 +89,7 @@
   --slide: 1.5rem;        /* how far a day slides in from the side it came from */
   --press: 0.97;          /* every tappable thing shrinks to this while pressed */
   --dot: 0.35rem;         /* the active-tab marker */
+  --stagger: 160ms;       /* gap between stops as the route draws itself */
   --maxw: 40rem;
   --maxw-wide: 64rem;     /* iPad and landscape phones */
   --bp-wide: 48rem;       /* two-column layouts from here up (documentation; media queries cannot read tokens) */
@@ -205,6 +206,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .cols, .col { display: contents; }
 .o-now { order: 1; } .o-badges { order: 2; } .o-plan { order: 3; } .o-hotel { order: 4; }
 .o-notes { order: 5; } .o-peek { order: 6; } .o-about { order: 7; } .o-nav { order: 8; }
+.o-1 { order: 1; } .o-2 { order: 2; } .o-3 { order: 3; } .o-4 { order: 4; }
 
 /* --- buttons ------------------------------------------------------------- */
 .btn {
@@ -326,6 +328,23 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 @keyframes pulse { 0% { transform: scale(0.6); opacity: 0.6; } 100% { transform: scale(2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .map__pulse { animation: none; opacity: 0.35; transform: scale(1.6); } }
 .map__city .map__hit { fill: transparent; stroke: none; }
+/* The route draws itself on the countdown screen: each leg, then the city
+   it reaches, in travel order. Reduced motion zeroes the durations. */
+@keyframes map-in { to { opacity: 1; } }
+.map--unfold .map__leg, .map--unfold .map__city { opacity: 0; animation: map-in var(--dur-slow) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+@media (prefers-reduced-motion: reduce) { .map--unfold .map__leg, .map--unfold .map__city { animation-delay: 0s; } }
+.map-link { display: block; position: relative; border-radius: var(--radius-lg); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
+.map-link:active { transform: scale(var(--press)); }
+.map-link .map__city { cursor: inherit; }
+.map-link__hint { position: absolute; left: var(--sp-3); bottom: var(--sp-3); display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 2.25rem; padding: 0 var(--sp-3); border-radius: var(--radius-pill); background: var(--brand); color: var(--brand-fg); font-size: var(--fs-meta); font-weight: 700; }
+.map-link__hint svg { width: 1.25em; height: 1.25em; }
+.stops { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
+.stop { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); padding: 0 var(--sp-3) 0 var(--sp-1); border-radius: var(--radius-pill); border: 2px solid var(--border-strong); background: var(--bg-card); color: var(--fg); font-weight: 700; text-decoration: none; transition: transform var(--dur-fast) var(--ease-out); }
+.stop:active { transform: scale(var(--press)); }
+.stop b { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; font-size: var(--fs-meta); }
+.stop .meta { font-weight: 400; }
+.stop--here { border-color: var(--accent); }
+.stop--here b { background: var(--accent); color: var(--accent-fg); }
 .legend { display: flex; flex-wrap: wrap; gap: var(--sp-4); font-size: var(--fs-meta); color: var(--fg-muted); }
 .legend span { display: inline-flex; align-items: center; gap: var(--sp-2); }
 .legend i { width: 2rem; height: 0; border-top: 3px solid var(--brand); }
@@ -408,7 +427,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .hero__title { font-size: var(--fs-display); }
   .cols { display: grid; grid-template-columns: 3fr 2fr; gap: var(--sp-5); align-items: start; }
   .col { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-5); }
-  .o-now, .o-badges, .o-plan, .o-hotel, .o-notes, .o-peek, .o-about { order: 0; }
+  .o-now, .o-badges, .o-plan, .o-hotel, .o-notes, .o-peek, .o-about, .o-1, .o-2, .o-3, .o-4 { order: 0; }
   .view--days .city-group { grid-template-columns: 1fr 1fr; }
   .view--days .city-group__head { grid-column: 1 / -1; }
   .view--hotels { grid-template-columns: 1fr 1fr; align-items: start; }

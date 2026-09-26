@@ -233,18 +233,30 @@ function renderToday() {
           <p class="hero__sub">16 days · 6 stops · 3 countries</p>
         </div>
       </section>
-      <section class="card count">
-        <div class="count__num">${st.daysUntil}</div>
-        <div class="lead">${st.daysUntil === 1 ? 'day' : 'days'} to go</div>
-        <p class="muted">Day 1 is ${esc(clock.longDate(d1.date))}: arrive in Hanoi.</p>
-      </section>
-      <a class="card peek" href="#/day/1">
-        <img class="peek__img" src="${dayImage(1)}" alt="">
-        <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
-      <section class="card"><div class="card__title">Before you go</div>
-        <ul class="check">${essentials[0].items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul>
-        <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
-      </section>`;
+      <div class="cols">
+        <div class="col col--main">
+          <section class="card o-2">
+            <div class="card__title">Where you're going</div>
+            ${mapSvg({ unfold: true, link: true })}
+            ${stopsHtml()}
+            <p class="meta">Tap a stop to read about those days.</p>
+          </section>
+        </div>
+        <div class="col col--side">
+          <section class="card count o-1">
+            <div class="count__num">${st.daysUntil}</div>
+            <div class="lead">${st.daysUntil === 1 ? 'day' : 'days'} to go</div>
+            <p class="muted">Day 1 is ${esc(clock.longDate(d1.date))}: arrive in Hanoi.</p>
+          </section>
+          <a class="card peek o-3" href="#/day/1">
+            <img class="peek__img" src="${dayImage(1)}" alt="">
+            <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
+          <section class="card o-4"><div class="card__title">Before you go</div>
+            <ul class="check">${essentials[0].items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul>
+            <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
+          </section>
+        </div>
+      </div>`;
     countUp(view.querySelector('.count__num'), st.daysUntil);
     return;
   }
@@ -291,40 +303,61 @@ const MAP_H = py(5.5);
 const LABELS = { hanoi: [-10, -14, 'end'], halong: [8, 18, 'start'], hcmc: [-12, 6, 'end'], siemreap: [-12, -12, 'end'], chiangmai: [12, 2, 'start'], bangkok: [-12, 16, 'end'] };
 const COUNTRY_LABELS = [['THAILAND', 15.6, 100.4], ['CAMBODIA', 11.7, 105.3], ['LAOS', 19.4, 102.5], ['VIETNAM', 15.6, 110.6, 'end']];
 
-function renderMap() {
-  const st = status();
-  const here = st.phase === 'during' ? cityOfDay(st.day) : null;
+/**
+ * The route as inline SVG. `here` marks the current city (during the trip);
+ * `unfold` draws the route stop by stop, used on the countdown screen.
+ */
+function mapSvg({ here = null, unfold = false, day = null, link = false } = {}) {
   const land = Object.values(outlines).map((ring) => `<path class="map__land" d="M${ring.map(([la, lo]) => `${px(lo).toFixed(1)} ${py(la).toFixed(1)}`).join('L')}Z"/>`).join('');
   const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
-  const legPaths = legs.map((l) => {
+  // Reveal order: each leg, then the city it arrives at.
+  const cityStep = { hanoi: 0 };
+  legs.forEach((l, i) => { if (!(l.to in cityStep)) cityStep[l.to] = i + 1; });
+  const legPaths = legs.map((l, i) => {
     const a = byId[l.from]; const b = byId[l.to];
     const x1 = px(a.lon); const y1 = py(a.lat); const x2 = px(b.lon); const y2 = py(b.lat);
-    if (l.mode !== 'air') return `<path class="map__leg" d="M${x1} ${y1}L${x2} ${y2}"/>`;
+    const style = unfold ? ` style="--i:${i + 1}"` : '';
+    if (l.mode !== 'air') return `<path class="map__leg"${style} d="M${x1} ${y1}L${x2} ${y2}"/>`;
     const mx = (x1 + x2) / 2; const my = (y1 + y2) / 2; const dx = x2 - x1; const dy = y2 - y1;
     const len = Math.hypot(dx, dy); const cx = mx - dy / len * len * 0.18; const cy = my + dx / len * len * 0.18;
-    return `<path class="map__leg map__leg--air" d="M${x1} ${y1}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2} ${y2}"/>`;
+    return `<path class="map__leg map__leg--air"${style} d="M${x1} ${y1}Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2} ${y2}"/>`;
   }).join('');
-  const markers = cities.map((c, i) => {
+  const markers = cities.map((c) => {
     const [dx, dy, anchor] = LABELS[c.id];
     const x = px(c.lon); const y = py(c.lat);
     const isHere = here && here.id === c.id;
-    const target = isHere ? st.day : c.days[0];
-    return `<a class="map__city${isHere ? ' map__city--here' : ''}" href="#/day/${target}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}">
+    const target = isHere ? day : c.days[0];
+    const style = unfold ? ` style="--i:${cityStep[c.id]}"` : '';
+    // Inside a linked map the markers are plain groups: one tap, one destination.
+    const tag = link ? 'g' : 'a';
+    const attrs = link ? '' : ` href="#/day/${target}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
+    return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}"${style}${attrs}>
       <circle class="map__hit" cx="${x}" cy="${y}" r="24"/>
       ${isHere ? `<circle class="map__pulse" cx="${x}" cy="${y}" r="9"/>` : ''}
       <circle cx="${x}" cy="${y}" r="${isHere ? 8 : 6.5}"/>
       <text x="${x + dx}" y="${y + dy + 4}" text-anchor="${anchor}">${esc(c.name)}</text>
-    </a>`;
+    </${tag}>`;
   }).join('');
   const countryLabels = COUNTRY_LABELS.map(([t, la, lo, an]) => `<text class="map__label" x="${px(lo)}" y="${py(la)}" text-anchor="${an || 'middle'}">${t}</text>`).join('');
+  const svg = `<svg class="map${unfold ? ' map--unfold' : ''}" viewBox="0 0 360 ${MAP_H.toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
+      ${land}${countryLabels}${legPaths}${markers}
+    </svg>`;
+  return link ? `<a class="map-link" href="#/map" aria-label="Open the full route map">${svg}<span class="map-link__hint">${icon('i-map')} Tap to explore the route</span></a>` : svg;
+}
 
+/** Numbered stop chips: the tappable twin of the map for anyone who prefers a list. */
+function stopsHtml(here = null, day = null) {
+  return `<ol class="stops">${cities.map((c, i) => `<li><a class="stop${here && here.id === c.id ? ' stop--here' : ''}" href="#/day/${here && here.id === c.id ? day : c.days[0]}"><b>${i + 1}</b>${esc(c.name)}<span class="meta">Day${c.days.length > 1 ? 's' : ''} ${c.days[0]}${c.days.length > 1 ? `–${c.days.at(-1)}` : ''}</span></a></li>`).join('')}</ol>`;
+}
+
+function renderMap() {
+  const st = status();
+  const here = st.phase === 'during' ? cityOfDay(st.day) : null;
   view.innerHTML = `
     <h1 class="h1">The route</h1>
     ${here ? `<div class="now">${icon('i-pin')}<span><strong>Day ${st.day}:</strong> Mom &amp; Dad are in ${esc(here.name)}, ${esc(here.country)}.</span></div>${nowLine()}`
       : st.phase === 'before' ? `<div class="now">${icon('i-pin')}<span>The trip starts in Hanoi on ${esc(clock.shortDate(trip.start))}.</span></div>` : ''}
-    <svg class="map" viewBox="0 0 360 ${MAP_H.toFixed(0)}" role="img" aria-label="Route map: Hanoi, Halong Bay, Ho Chi Minh City, Siem Reap, Chiang Mai, Bangkok">
-      ${land}${countryLabels}${legPaths}${markers}
-    </svg>
+    ${mapSvg({ here, day: st.day })}
     <div class="legend"><span><i></i> Road or boat</span><span><i class="air"></i> Flight</span>${here ? '<span><b></b> They are here</span>' : ''}</div>
     <ol class="citylist">${cities.map((c, i) => `<li><a class="cityrow${here && here.id === c.id ? ' cityrow--here' : ''}" href="#/day/${here && here.id === c.id ? st.day : c.days[0]}">
         <span class="cityrow__n">${i + 1}</span>
