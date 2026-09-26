@@ -264,6 +264,14 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .pill--today { background: var(--accent); color: var(--accent-fg); }
 .pill--plain { background: none; backdrop-filter: none; padding-inline: 0; }
 
+/* The countdown hero: a title band over the route, one tap into the Map tab. */
+.hero--map { display: grid; grid-template-rows: auto 1fr; align-items: start; min-height: 0; background: var(--brand-soft); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
+.hero--map:active { transform: scale(var(--press)); }
+.hero--map .map { border-radius: 0; border: 0; }
+.hero--map .map-link__hint { bottom: var(--sp-3); }
+.hero__band { position: relative; padding: var(--sp-4); background: var(--brand); color: var(--brand-fg); display: grid; gap: var(--sp-2); }
+.hero__band .pill { background: rgb(255 255 255 / 0.18); }
+
 /* --- badges -------------------------------------------------------------- */
 .badges { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
 .badge { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.35em 0.8em; border-radius: var(--radius-pill); background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-text); font-weight: 700; font-size: var(--fs-meta); }
@@ -450,6 +458,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .view--map > .map { grid-row: span 3; }
   .tabs { grid-auto-columns: minmax(0, 9rem); justify-content: center; }
   .driver__name { font-size: var(--fs-display-xl); }
+  /* Countdown hero on a wide screen: band beside the map, map no taller than the screen. */
+  .hero--map { grid-template-columns: 2fr 3fr; grid-template-rows: none; align-items: stretch; min-height: 0; }
+  .hero--map .hero__band { align-content: center; padding: var(--sp-6); }
+  .hero--map .map { max-height: 32rem; width: 100%; }
 }
 
 /* --- print --------------------------------------------------------------- */
