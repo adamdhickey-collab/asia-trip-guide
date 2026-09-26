@@ -33,7 +33,9 @@
      a chip on white and land on the sea all get the same crisp 1px line. */
   --edge: rgb(31 42 40 / 0.18);
   --edge-strong: rgb(31 42 40 / 0.36);
-  --overlay: rgb(7 58 55 / 0.62);
+  --overlay: rgb(7 58 55 / 0.86);      /* behind text on a photo: 5.7:1 for white even over bright water */
+  --overlay-soft: rgb(7 58 55 / 0.30); /* the top of a photo, where there is no text */
+  --text-shadow-photo: 0 1px 2px rgb(0 0 0 / 0.45);
   --on-photo: #ffffff;               /* text laid over a photograph */
   --on-photo-soft: rgb(255 255 255 / 0.22); /* a pill or button over a photograph */
   --scrim: rgb(0 0 0 / 0.92);        /* behind the lightbox */
@@ -97,8 +99,12 @@
   --slide: 1.5rem;        /* how far a day slides in from the side it came from */
   --press: 0.97;          /* every tappable thing shrinks to this while pressed */
   --dot: 0.35rem;         /* the active-tab marker */
+  --lift: -2px;           /* how far a hovered card or button rises (desktop only) */
+  --nudge: 4px;           /* a chevron slides this far on hover */
+  --grow: 1.03;           /* a hovered photo or marker grows to this */
+  --shadow-lift: 0 2px 4px rgb(31 42 40 / 0.08), 0 12px 28px rgb(31 42 40 / 0.12);
   --promo-map: 17rem;     /* the map as a picture on the countdown hero */
-  --band-h: 15rem;        /* the photo band above it on a phone */
+  --band-h: 17rem;        /* the photo band above it on a phone: room for the photo above the text */
   --promo-cta: 22rem;     /* and the button under it */
   --promo-map-wide: 19rem; /* the promo map on an iPad */
   --draw: 450ms;          /* one leg glides in over this, soft start and stop */
@@ -133,9 +139,11 @@
     --edge-strong: rgb(255 255 255 / 0.32);
     --border: var(--edge);
     --border-strong: var(--edge-strong);
-    --hero-overlay: rgb(0 0 0 / 0.55);
+    --hero-overlay: rgb(0 0 0 / 0.78);
+    --overlay-soft: rgb(0 0 0 / 0.30);
     --map-land: #263a37;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
+    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 14px 32px rgb(0 0 0 / 0.5);
   }
 }
 
@@ -272,12 +280,13 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 /* --- hero ---------------------------------------------------------------- */
 .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--brand-strong); border: 1px solid var(--border); min-height: 15rem; display: grid; align-items: end; box-shadow: var(--shadow); }
 .hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: img-in var(--dur-slow) var(--ease-out); }
-.hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: var(--on-photo); background: linear-gradient(to top, var(--hero-overlay) 55%, transparent); display: grid; gap: var(--sp-2); }
+.hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: var(--on-photo); background: linear-gradient(to top, var(--hero-overlay) 65%, var(--overlay-soft)); text-shadow: var(--text-shadow-photo); display: grid; gap: var(--sp-2); }
 .hero__body a { color: inherit; }
 .hero__kicker { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-tight); font-weight: 600; text-wrap: balance; }
 .hero__sub { font-size: var(--fs-lead); }
-.pill { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.2em 0.7em; border-radius: var(--radius-pill); background: var(--on-photo-soft); }
+/* On a photo a pill is solid jade, so white text on it is 7.5:1 whatever is behind. */
+.pill { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.2em 0.7em; border-radius: var(--radius-pill); background: var(--brand); }
 .pill--today { background: var(--accent); color: var(--accent-fg); }
 .pill--plain { background: none; padding-inline: 0; }
 
@@ -286,9 +295,9 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .hero--map { display: grid; grid-template-rows: auto 1fr; align-items: start; min-height: 0; background: var(--brand-soft); }
 .hero--map .map { border-radius: 0; border: 0; background: transparent; width: min(100%, var(--promo-map)); }
 .hero__band { position: relative; overflow: hidden; min-height: var(--band-h); padding: var(--sp-4); background: var(--brand); color: var(--brand-fg); display: grid; align-content: end; }
-.hero__band::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-overlay) 45%, rgb(7 58 55 / 0.2)); }
-.hero__band-body { position: relative; display: grid; gap: var(--sp-2); }
-.hero__band .pill { background: var(--on-photo-soft); }
+.hero__band::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-overlay) 72%, var(--overlay-soft)); }
+.hero__band-body { position: relative; display: grid; gap: var(--sp-2); text-shadow: var(--text-shadow-photo); }
+.hero__band .pill { background: var(--brand); }
 .hero__promo { display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-5); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
 .hero__promo:active { transform: scale(var(--press)); }
 .hero__cta { width: 100%; max-width: var(--promo-cta); font-size: var(--fs-h3); box-shadow: var(--shadow); }
@@ -394,7 +403,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- stop sheet ------------------------------------------------------------ */
 .sheet { position: fixed; inset: 0; z-index: 30; display: grid; align-items: end; }
-.sheet__backdrop { position: absolute; inset: 0; background: var(--hero-overlay); opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
+.sheet__backdrop { position: absolute; inset: 0; background: var(--overlay-soft); opacity: 0; transition: opacity var(--dur-slow) var(--ease-out); }
 .sheet__panel { position: relative; width: 100%; max-width: var(--maxw); margin: 0 auto; background: var(--bg-card); border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: var(--shadow); overflow: hidden; transform: translateY(100%); transition: transform var(--dur-slow) var(--ease-out); padding-bottom: env(safe-area-inset-bottom); }
 .sheet--open .sheet__backdrop { opacity: 1; }
 .sheet--open .sheet__panel { transform: none; }
@@ -545,6 +554,54 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .cols--even { grid-template-columns: 1fr 1fr; }
   .hero__promo { align-content: center; padding: var(--sp-5); }
   .hero--map .map { width: min(100%, var(--promo-map-wide)); }
+}
+
+/* --- hover, on devices that have it --------------------------------------
+   Every hover is a small, honest preview of the tap: the thing you would
+   press rises or grows a little and its edge picks up the brand. Kept behind
+   the hover/fine-pointer query so touch screens never get a stuck state. */
+@media (hover: hover) and (pointer: fine) {
+  .btn { transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast), box-shadow var(--dur-fast), border-color var(--dur-fast); }
+  .btn:hover { transform: translateY(var(--lift)); box-shadow: var(--shadow-lift); background: var(--brand-strong); border-color: var(--brand-strong); }
+  .btn--ghost:hover { background: var(--brand-soft); color: var(--brand-strong); border-color: var(--brand); }
+  .btn--accent:hover { background: var(--saffron-500); border-color: var(--saffron-500); color: var(--accent-fg); }
+  .daybar__btn:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-strong); }
+  .daybar__today:hover { background: var(--saffron-500); }
+  .tabs a:hover { color: var(--brand-strong); }
+  .tabs a:hover svg { transform: translateY(var(--lift)); }
+  .top__brand:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+  .tel:hover, .prose a:hover, .meta a:hover { text-decoration-thickness: 2px; color: var(--brand); }
+  .fold summary:hover { color: var(--fg); }
+
+  /* cards that are links rise, their chevron slides, their edge picks up the brand */
+  .dayrow, .cityrow, .peek, .stop, .map-link, .hero__promo { transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast), border-color var(--dur-fast), background-color var(--dur-fast); }
+  .dayrow:hover, .cityrow:hover, .peek:hover, .stop:hover { transform: translateY(var(--lift)); box-shadow: var(--shadow-lift); border-color: var(--brand); }
+  .dayrow svg, .cityrow svg, .peek svg { transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast); }
+  .dayrow:hover svg, .cityrow:hover svg, .peek:hover svg { transform: translateX(var(--nudge)); color: var(--brand); }
+  .cityrow--hover { border-color: var(--brand); background: var(--bg-muted); } /* set from the map, see app.js */
+  .gallery__btn:hover { border-color: var(--brand); background: var(--brand-soft); color: var(--brand-strong); }
+
+  /* photos ease in a touch, inside their rounded frames */
+  .gallery img, .hero:not(.hero--map) .hero__img, .peek__img, .dayrow__img { transition: transform var(--dur) var(--ease-out); }
+  .gallery img:hover, .hero:not(.hero--map):hover .hero__img { transform: scale(var(--grow)); }
+  .peek:hover .peek__img, .dayrow:hover .dayrow__img { transform: scale(var(--grow)); }
+  .gallery img { transform-origin: center; }
+  .hero:not(.hero--map) { overflow: hidden; }
+  .peek, .dayrow { overflow: hidden; }
+  .lightbox__close:hover, .lightbox__nav:hover { background: rgb(255 255 255 / 0.32); }
+
+  /* the countdown promo: the button rises, the map breathes */
+  .hero__promo:hover .hero__cta { transform: translateY(var(--lift)); box-shadow: var(--shadow-lift); background: var(--saffron-500); border-color: var(--saffron-500); }
+  .hero__promo .map { transition: transform var(--dur) var(--ease-out); }
+  .hero__promo:hover .map { transform: scale(1.02); }
+
+  /* map stops: grow, ring goes saffron, leader thickens; the matching list row lights up */
+  .map__city:hover { transform: scale(var(--select)); }
+  .map__ring, .map__leader { transition: stroke var(--dur-fast), stroke-width var(--dur-fast); }
+  .map__city:hover .map__ring { stroke: var(--accent); stroke-width: 4; }
+  .map__city:hover .map__leader { stroke-width: 2.5; }
+  .map__city--hover { transform: scale(var(--select)); }
+  .map__city--hover .map__ring { stroke: var(--accent); stroke-width: 4; }
 }
 
 /* --- print --------------------------------------------------------------- */
