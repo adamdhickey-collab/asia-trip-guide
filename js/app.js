@@ -316,9 +316,11 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
   const prefix = inert ? 'home' : 'map';
   const land = Object.values(outlines).map((ring) => `<path class="map__land" d="M${ring.map(([la, lo]) => `${px(lo).toFixed(1)} ${py(la).toFixed(1)}`).join('L')}Z"/>`).join('');
   const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
-  // Reveal order: each leg, then the city it arrives at.
+  // Reveal order: each leg, then the city it arrives at. A `via` leg is an
+  // airport change (Bangkok on the way to Chiang Mai), so it does not reveal
+  // the city; Bangkok's callout waits for the leg that arrives to stay.
   const cityStep = { hanoi: 0 };
-  legs.forEach((l, i) => { if (!(l.to in cityStep)) cityStep[l.to] = i + 1; });
+  legs.forEach((l, i) => { if (!l.via && !(l.to in cityStep)) cityStep[l.to] = i + 1; });
   const legPaths = legs.map((l, i) => {
     const a = byId[l.from]; const b = byId[l.to];
     const x1 = px(a.lon); const y1 = py(a.lat); const x2 = px(b.lon); const y2 = py(b.lat);
