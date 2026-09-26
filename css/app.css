@@ -96,8 +96,8 @@
   --band-h: 15rem;        /* the photo band above it on a phone */
   --promo-cta: 22rem;     /* and the button under it */
   --promo-map-wide: 19rem; /* the promo map on an iPad */
-  --stagger: 680ms;       /* gap between legs as the route draws itself */
-  --draw: 1040ms;         /* how long one leg takes to draw (~6s for the whole route) */
+  --draw: 1000ms;         /* how long one leg takes to draw, at a steady pace */
+  --stagger: 900ms;       /* the next leg starts just before the previous one lands: no dead gaps (~7s total) */
   --seg-h: 0.4rem;        /* the trip progress strip */
   --select: 1.12;         /* a selected map stop grows to this */
   --maxw: 40rem;
@@ -367,7 +367,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
    order; each stop pops in as its leg arrives. Reduced motion zeroes it all. */
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes city-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
-.map__draw { fill: none; stroke: #fff; stroke-width: 14; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw var(--draw) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
+.map__draw { fill: none; stroke: #fff; stroke-width: 14; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: draw var(--draw) linear forwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
 .map--unfold .map__city { opacity: 0; transform-box: fill-box; transform-origin: center; animation: city-in var(--dur-slow) var(--ease-out) forwards; animation-delay: calc(var(--i, 0) * var(--stagger) + var(--draw) * min(var(--i, 0), 1)); }
 /* Country names are there from the first frame, then settle back once the
    route is complete so the callouts take the stage without the names leaving. */
