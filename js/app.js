@@ -371,13 +371,15 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
       <line class="map__leader" x1="${x}" y1="${y}" x2="${cx}" y2="${cy}"/>
       <circle class="map__point" cx="${x}" cy="${y}" r="3.5"/>
       ${isHere ? `<circle class="map__pulse" cx="${cx}" cy="${cy}" r="${R}"/>` : ''}
-      <clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>
-      <image href="${c.photo}" aria-label="${esc(cityAlt(c))}" x="${cx - R}" y="${cy - R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
-      <circle class="map__ring" cx="${cx}" cy="${cy}" r="${R}"/>
-      <rect class="map__pill" x="${cx - pillW / 2}" y="${cy + R - PILL_H / 2}" width="${pillW}" height="${PILL_H}" rx="${PILL_H / 2}"/>
-      <text class="map__pill-text" x="${cx}" y="${cy + R + 5.5}" text-anchor="middle">${pillText}</text>
-      <text class="map__name" x="${cx}" y="${cy + R + PILL_H + 12}" text-anchor="middle">${esc(c.name)}</text>
-      <circle class="map__hit" cx="${cx}" cy="${cy}" r="${R + 8}"/>
+      <g class="map__callout" style="transform-origin: ${cx}px ${cy}px">
+        <clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>
+        <image href="${c.photo}" aria-label="${esc(cityAlt(c))}" x="${cx - R}" y="${cy - R}" width="${R * 2}" height="${R * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${clipId})"/>
+        <circle class="map__ring" cx="${cx}" cy="${cy}" r="${R}"/>
+        <rect class="map__pill" x="${cx - pillW / 2}" y="${cy + R - PILL_H / 2}" width="${pillW}" height="${PILL_H}" rx="${PILL_H / 2}"/>
+        <text class="map__pill-text" x="${cx}" y="${cy + R + 5.5}" text-anchor="middle">${pillText}</text>
+        <text class="map__name" x="${cx}" y="${cy + R + PILL_H + 12}" text-anchor="middle">${esc(c.name)}</text>
+        <circle class="map__hit" cx="${cx}" cy="${cy}" r="${R + 8}"/>
+      </g>
     </${tag}>`;
   }).join('');
   const countryLabels = COUNTRY_LABELS.map(([t, la, lo, an]) => `<text class="map__label" x="${px(lo)}" y="${py(la)}" text-anchor="${an || 'middle'}">${t}</text>`).join('');
