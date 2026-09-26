@@ -28,8 +28,11 @@
   --ink-400: #6b7674;    /*  4.6:1 — only for decorative meta */
   --paper: #f7f3ec;
   --card: #ffffff;
-  --line: #e3dccf;
-  --line-strong: #c9c0ae;
+  /* Edges are ink at low opacity, never a solid tan: a hairline that reads
+     as a slightly darker version of whatever it sits on, so a card on cream,
+     a chip on white and land on the sea all get the same crisp 1px line. */
+  --edge: rgb(31 42 40 / 0.18);
+  --edge-strong: rgb(31 42 40 / 0.36);
   --overlay: rgb(7 58 55 / 0.62);
 
   /* --- semantic ---------------------------------------------------------- */
@@ -47,8 +50,8 @@
   --accent-fg: var(--ink-900);
   --accent-soft: var(--saffron-100);
   --accent-text: var(--saffron-700);
-  --border: var(--line);
-  --border-strong: var(--line-strong);
+  --border: var(--edge);
+  --border-strong: var(--edge-strong);
   --hero-overlay: var(--overlay);
   --focus: var(--saffron-500);
 
@@ -112,8 +115,10 @@
     --accent-fg: #1f2a28;
     --accent-soft: #4a3a18;
     --accent-text: #f2b641;
-    --border: #2c3d3a;
-    --border-strong: #3d524e;
+    --edge: rgb(255 255 255 / 0.16);
+    --edge-strong: rgb(255 255 255 / 0.32);
+    --border: var(--edge);
+    --border-strong: var(--edge-strong);
     --hero-overlay: rgb(0 0 0 / 0.55);
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
   }
@@ -150,6 +155,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- top bar ------------------------------------------------------------- */
 .top {
+  border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3);
   padding: max(var(--sp-2), env(safe-area-inset-top)) var(--sp-4) var(--sp-2);
   min-height: var(--tap);
@@ -186,7 +192,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--sp-4); }
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); padding: var(--sp-4); }
 .card--muted { background: var(--bg-muted); box-shadow: none; }
-.card--accent { background: var(--accent-soft); border-color: transparent; box-shadow: none; }
+.card--accent { background: var(--accent-soft); box-shadow: none; }
 .card__title { font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--fg-muted); margin-bottom: var(--sp-3); }
 .card > .card__title:first-child { margin-top: 0; }
 
@@ -247,7 +253,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .daybar__today { text-decoration: none; white-space: nowrap; min-height: 2.25rem; padding: 0 var(--sp-3); border-radius: var(--radius-pill); background: var(--accent); color: var(--accent-fg); border: 0; font-weight: 700; font-size: var(--fs-meta); display: inline-flex; align-items: center; gap: var(--sp-1); }
 
 /* --- hero ---------------------------------------------------------------- */
-.hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--brand-strong); min-height: 15rem; display: grid; align-items: end; box-shadow: var(--shadow); }
+.hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--brand-strong); border: 1px solid var(--border); min-height: 15rem; display: grid; align-items: end; box-shadow: var(--shadow); }
 .hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: img-in var(--dur-slow) var(--ease-out); }
 .hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: #fff; background: linear-gradient(to top, var(--hero-overlay) 55%, transparent); display: grid; gap: var(--sp-2); }
 .hero__body a { color: inherit; }
@@ -260,12 +266,12 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- badges -------------------------------------------------------------- */
 .badges { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
-.badge { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.35em 0.8em; border-radius: var(--radius-pill); background: var(--accent-soft); color: var(--accent-text); font-weight: 700; font-size: var(--fs-meta); }
+.badge { display: inline-flex; align-items: center; gap: var(--sp-1); padding: 0.35em 0.8em; border-radius: var(--radius-pill); background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-text); font-weight: 700; font-size: var(--fs-meta); }
 .badge svg { width: 1.25em; height: 1.25em; }
 .badge--calm { background: var(--brand-soft); color: var(--brand-strong); }
 
 /* --- now line ------------------------------------------------------------ */
-.now { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--bg-muted); border-radius: var(--radius); }
+.now { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); background: var(--bg-muted); border: 1px solid var(--border); border-radius: var(--radius); }
 .now svg { color: var(--brand); }
 .now__time { font-weight: 700; }
 
@@ -273,7 +279,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .timeline { display: grid; gap: 0; }
 .step { display: grid; grid-template-columns: var(--tap) minmax(0, 1fr); gap: var(--sp-3); padding: var(--sp-3) 0; position: relative; }
 .step + .step { border-top: 1px solid var(--border); }
-.step__icon { width: var(--tap); height: var(--tap); border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; }
+.step__icon { width: var(--tap); height: var(--tap); border-radius: 50%; background: var(--brand-soft); border: 1px solid var(--border); color: var(--brand-strong); display: grid; place-items: center; }
 .step__icon svg { width: 1.6rem; height: 1.6rem; }
 .step__icon--accent { background: var(--accent); color: var(--accent-fg); }
 .step__body { display: grid; gap: var(--sp-1); align-content: start; padding-top: 0.15rem; min-width: 0; }
@@ -284,7 +290,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- hotel card ---------------------------------------------------------- */
 .hotel { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: var(--sp-4); align-items: start; }
-.hotel__img { width: 6rem; height: 6rem; object-fit: cover; border-radius: var(--radius); }
+.hotel__img { width: 6rem; height: 6rem; object-fit: cover; border-radius: var(--radius); outline: 1px solid var(--border); outline-offset: -1px; }
 .hotel__body { display: grid; gap: var(--sp-1); min-width: 0; }
 .hotel .btn-row { grid-column: 1 / -1; }
 
@@ -295,7 +301,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 
 /* --- tomorrow / peek card ------------------------------------------------- */
 .peek { display: grid; grid-template-columns: 5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; text-decoration: none; color: inherit; }
-.peek__img { width: 5rem; height: 5rem; object-fit: cover; border-radius: var(--radius); }
+.peek__img { width: 5rem; height: 5rem; object-fit: cover; border-radius: var(--radius); outline: 1px solid var(--border); outline-offset: -1px; }
 .peek__body { display: grid; gap: var(--sp-1); min-width: 0; }
 .peek svg { color: var(--brand); }
 
@@ -305,7 +311,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .dayrow { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; padding: var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; min-height: var(--tap); }
 .dayrow--today { border: 2px solid var(--accent); background: var(--accent-soft); }
 .dayrow--past { opacity: 0.72; }
-.dayrow__img { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: var(--radius); }
+.dayrow__img { width: 4.5rem; height: 4.5rem; object-fit: cover; border-radius: var(--radius); outline: 1px solid var(--border); outline-offset: -1px; }
 .dayrow__body { display: grid; gap: 0.15rem; min-width: 0; }
 .dayrow__title { font-weight: 700; line-height: var(--lh-tight); }
 .dayrow svg { color: var(--fg-faint); }
@@ -315,8 +321,8 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .count__num { font-family: var(--font-display); font-size: var(--fs-display); line-height: 1; font-weight: 600; color: var(--brand-strong); }
 
 /* --- map ----------------------------------------------------------------- */
-.map { width: 100%; height: auto; display: block; border-radius: var(--radius-lg); background: var(--bg-muted); }
-.map__land { fill: var(--bg-card); stroke: var(--border-strong); stroke-width: 1.2; }
+.map { width: 100%; height: auto; display: block; border-radius: var(--radius-lg); background: var(--brand-soft); border: 1px solid var(--border); }
+.map__land { fill: var(--bg-card); stroke: var(--border-strong); stroke-width: 1; }
 .map__label { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; fill: var(--fg-faint); text-transform: uppercase; stroke: none; }
 .map__leg { fill: none; stroke: var(--brand); stroke-width: 2.5; }
 .map__leg--air { stroke-dasharray: 5 5; }
@@ -326,7 +332,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .map__ring { fill: none; stroke: var(--bg-card); stroke-width: 3; }
 .map__pill { fill: var(--brand); stroke: var(--bg-card); stroke-width: 2; }
 .map__pill-text { font-family: var(--font-body); font-size: 11px; font-weight: 700; fill: var(--brand-fg); stroke: none; }
-.map__name { font-family: var(--font-body); font-size: 13px; font-weight: 700; fill: var(--fg); stroke: var(--bg-muted); stroke-width: 4px; stroke-linejoin: round; paint-order: stroke; }
+.map__name { font-family: var(--font-body); font-size: 13px; font-weight: 700; fill: var(--fg); stroke: var(--brand-soft); stroke-width: 4px; stroke-linejoin: round; paint-order: stroke; }
 .map__city--here .map__pill { fill: var(--accent); }
 .map__city--here .map__pill-text { fill: var(--accent-fg); }
 .map__city--here .map__point { fill: var(--accent); }
@@ -348,7 +354,7 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .stops { display: flex; flex-wrap: wrap; gap: var(--sp-2); margin-top: var(--sp-3); }
 .stop { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--tap); padding: 0 var(--sp-3) 0 var(--sp-1); border-radius: var(--radius-pill); border: 2px solid var(--border-strong); background: var(--bg-card); color: var(--fg); font-weight: 700; text-decoration: none; transition: transform var(--dur-fast) var(--ease-out); }
 .stop:active { transform: scale(var(--press)); }
-.stop b { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; font-size: var(--fs-meta); }
+.stop b { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand-soft); border: 1px solid var(--border); color: var(--brand-strong); display: grid; place-items: center; font-size: var(--fs-meta); }
 .stop .meta { font-weight: 400; }
 .stop--here { border-color: var(--accent); }
 .stop--here b { background: var(--accent); color: var(--accent-fg); }
@@ -360,14 +366,14 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .citylist { display: grid; gap: var(--sp-2); }
 .cityrow { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr) auto; gap: var(--sp-3); align-items: center; min-height: var(--tap); padding: var(--sp-2) var(--sp-3); background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); text-decoration: none; color: inherit; }
 .cityrow--here { border: 2px solid var(--accent); }
-.cityrow__n { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--brand-soft); color: var(--brand-strong); display: grid; place-items: center; font-weight: 700; font-size: var(--fs-meta); }
+.cityrow__n { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: var(--brand-soft); border: 1px solid var(--border); color: var(--brand-strong); display: grid; place-items: center; font-weight: 700; font-size: var(--fs-meta); }
 .cityrow--here .cityrow__n { background: var(--accent); color: var(--accent-fg); }
 .cityrow svg { color: var(--fg-faint); }
 
 /* --- gallery ------------------------------------------------------------- */
 .gallery { display: flex; gap: var(--sp-2); overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; margin: 0 calc(-1 * var(--sp-4)); padding: 0 var(--sp-4) var(--sp-2); scrollbar-width: none; }
 .gallery::-webkit-scrollbar { display: none; }
-.gallery img { flex: 0 0 82%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); scroll-snap-align: start; }
+.gallery img { flex: 0 0 82%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius); scroll-snap-align: start; outline: 1px solid var(--border); outline-offset: -1px; }
 .gallery__nav { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-3); }
 .gallery__hint { font-size: var(--fs-meta); color: var(--fg-muted); }
 .gallery__btn { display: inline-flex; align-items: center; justify-content: center; width: var(--tap); height: var(--tap); border-radius: 50%; border: 2px solid var(--border-strong); background: var(--bg-card); color: var(--fg); cursor: pointer; }
