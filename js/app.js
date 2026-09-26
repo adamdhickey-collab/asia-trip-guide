@@ -225,22 +225,25 @@ function renderToday() {
   const d1 = days[0];
   if (st.phase === 'before') {
     view.innerHTML = `
-      <section class="hero">
-        <img class="hero__img" src="img/cover/halong-junk.jpg" alt="">
-        <div class="hero__body">
+      <a class="hero hero--map" href="#/map" aria-label="Open the full route map">
+        <div class="hero__band">
           <div class="hero__kicker"><span class="pill">${esc(trip.name)}</span></div>
           <h1 class="hero__title">${esc(clock.shortDate(trip.start, false))} to ${esc(clock.shortDate(trip.end, false))}, 2027</h1>
           <p class="hero__sub">16 days · 6 stops · 3 countries</p>
         </div>
-      </section>
+        ${mapSvg({ unfold: true, inert: true })}
+        <span class="map-link__hint">${icon('i-map')} Tap to explore the route</span>
+      </a>
       <div class="cols">
         <div class="col col--main">
           <section class="card o-2">
-            <div class="card__title">Where you're going</div>
-            ${mapSvg({ unfold: true, link: true })}
+            <div class="card__title">The stops</div>
             ${stopsHtml()}
             <p class="meta">Tap a stop to read about those days.</p>
           </section>
+          <a class="card peek o-3" href="#/day/1">
+            <img class="peek__img" src="${dayImage(1)}" alt="">
+            <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
         </div>
         <div class="col col--side">
           <section class="card count o-1">
@@ -248,9 +251,6 @@ function renderToday() {
             <div class="lead">${st.daysUntil === 1 ? 'day' : 'days'} to go</div>
             <p class="muted">Day 1 is ${esc(clock.longDate(d1.date))}: arrive in Hanoi.</p>
           </section>
-          <a class="card peek o-3" href="#/day/1">
-            <img class="peek__img" src="${dayImage(1)}" alt="">
-            <div class="peek__body"><div class="card__title" style="margin:0">Day 1 preview</div><div class="h3">${esc(d1.title)}</div><div class="meta">${esc(d1.place)}, ${esc(d1.country)}</div></div>${icon('i-right')}</a>
           <section class="card o-4"><div class="card__title">Before you go</div>
             <ul class="check">${essentials[0].items.map((i) => `<li>${icon('i-check')}<span>${esc(i)}</span></li>`).join('')}</ul>
             <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
@@ -306,7 +306,8 @@ const COUNTRY_LABELS = [['THAILAND', 15.6, 100.4], ['CAMBODIA', 11.7, 105.3], ['
  * The route as inline SVG. `here` marks the current city (during the trip);
  * `unfold` draws the route stop by stop, used on the countdown screen.
  */
-function mapSvg({ here = null, unfold = false, day = null, link = false } = {}) {
+function mapSvg({ here = null, unfold = false, day = null, link = false, inert = false } = {}) {
+  inert = inert || link; // a linked map, or one inside another link, has no marker links of its own
   const land = Object.values(outlines).map((ring) => `<path class="map__land" d="M${ring.map(([la, lo]) => `${px(lo).toFixed(1)} ${py(la).toFixed(1)}`).join('L')}Z"/>`).join('');
   const byId = Object.fromEntries(cities.map((c) => [c.id, c]));
   // Reveal order: each leg, then the city it arrives at.
@@ -332,11 +333,11 @@ function mapSvg({ here = null, unfold = false, day = null, link = false } = {}) 
     const isHere = here && here.id === c.id;
     const target = isHere ? day : c.days[0];
     const style = unfold ? ` style="--i:${cityStep[c.id]}"` : '';
-    const tag = link ? 'g' : 'a';
-    const attrs = link ? '' : ` href="#/day/${target}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
+    const tag = inert ? 'g' : 'a';
+    const attrs = inert ? '' : ` href="#/day/${target}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
     const pillText = isHere ? String(day) : (c.days.length > 1 ? `${c.days[0]}–${c.days.at(-1)}` : String(c.days[0]));
     const pillW = 12 + pillText.length * 7;
-    const clipId = `clip-${link ? 'home' : 'map'}-${c.id}`;
+    const clipId = `clip-${inert ? 'home' : 'map'}-${c.id}`;
     return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}"${style}${attrs}>
       <line class="map__leader" x1="${x}" y1="${y}" x2="${cx}" y2="${cy}"/>
       <circle class="map__point" cx="${x}" cy="${y}" r="3.5"/>
