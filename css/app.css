@@ -396,8 +396,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 @media (prefers-reduced-motion: reduce) { .map__draw, .map--unfold .map__city { animation-delay: 0s; } }
 .map__leg--upcoming { opacity: 0.4; }
 .map--unfold .map__city--set { opacity: 1; animation: none; }
-.map__city { transition: transform var(--dur) var(--ease-out); transform-box: fill-box; transform-origin: center; }
-.map__city--selected { transform: scale(var(--select)); }
+/* Only the callout (photo, day pill, name) grows on hover or selection; the
+   leader line and its dot stay put. Origin is the photo's centre, set inline. */
+.map__callout { transition: transform var(--dur) var(--ease-out); transform-box: view-box; }
+.map__city--selected .map__callout { transform: scale(var(--select)); }
 .map__city--selected .map__ring { stroke: var(--accent); stroke-width: 4; }
 .legend i.faint { opacity: 0.4; }
 
@@ -596,11 +598,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .hero__promo:hover .map { transform: scale(1.02); }
 
   /* map stops: grow, ring goes saffron, leader thickens; the matching list row lights up */
-  .map__city:hover { transform: scale(var(--select)); }
+  .map__city:hover .map__callout { transform: scale(var(--select)); }
   .map__ring, .map__leader { transition: stroke var(--dur-fast), stroke-width var(--dur-fast); }
   .map__city:hover .map__ring { stroke: var(--accent); stroke-width: 4; }
-  .map__city:hover .map__leader { stroke-width: 2.5; }
-  .map__city--hover { transform: scale(var(--select)); }
+  .map__city--hover .map__callout { transform: scale(var(--select)); }
   .map__city--hover .map__ring { stroke: var(--accent); stroke-width: 4; }
 }
 
