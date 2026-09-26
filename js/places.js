@@ -13,7 +13,7 @@ export const cities = [
 
 // Where each stop's photo sits relative to its point, in map units, so
 // neighbours (Hanoi and Halong Bay are 35 units apart) never overlap.
-export const photoOffsets = { hanoi: [-40, -26], halong: [42, 24], hcmc: [36, 26], siemreap: [36, -34], chiangmai: [40, -26], bangkok: [-36, 30] };
+export const photoOffsets = { hanoi: [-40, -26], halong: [42, 24], hcmc: [18, 28], siemreap: [36, -34], chiangmai: [40, -26], bangkok: [-36, 30] };
 
 // Legs in travel order. mode: 'road' | 'boat' | 'air'. `via` is a stop with no overnight.
 export const legs = [
