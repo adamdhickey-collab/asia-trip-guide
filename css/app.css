@@ -117,7 +117,7 @@
   --promo-map-wide: 19rem; /* the promo map on an iPad */
   --portrait: 5.5rem;      /* Lucy's photo on the countdown screen */
   --stamp: 2.75rem;        /* her paw-print stamp of approval: a saffron coin */
-  --stamp-tilt: -14deg;
+  --stamp-tilt: 14deg;
   --draw: 450ms;          /* one leg glides in over this, soft start and stop */
   --pop: 300ms;           /* its callout pops in as the line arrives */
   --stagger: 560ms;       /* the next leg begins as the pop finishes (~4.5s in all) */
