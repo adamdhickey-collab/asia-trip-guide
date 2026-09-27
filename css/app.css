@@ -33,8 +33,13 @@
      a chip on white and land on the sea all get the same crisp 1px line. */
   --edge: rgb(31 42 40 / 0.18);
   --edge-strong: rgb(31 42 40 / 0.36);
-  --overlay: rgb(7 58 55 / 0.86);      /* behind text on a photo: 5.7:1 for white even over bright water */
-  --overlay-soft: rgb(7 58 55 / 0.30); /* the top of a photo, where there is no text */
+  /* Photo overlays are black, eased from the bottom up: solid enough behind
+     the text (5.5:1 for white even over bright water), then a long soft fade
+     to nothing so the picture is never cut by a hard edge. */
+  --overlay: rgb(0 0 0 / 0.82);
+  --overlay-mid: rgb(0 0 0 / 0.55);
+  --overlay-soft: rgb(0 0 0 / 0.22);
+  --photo-fade: linear-gradient(to top, var(--overlay) 0%, var(--overlay) 34%, var(--overlay-mid) 52%, var(--overlay-soft) 74%, transparent 100%);
   --text-shadow-photo: 0 1px 2px rgb(0 0 0 / 0.45);
   --on-photo: #ffffff;               /* text laid over a photograph */
   --on-photo-soft: rgb(255 255 255 / 0.22); /* a pill or button over a photograph */
@@ -139,8 +144,6 @@
     --edge-strong: rgb(255 255 255 / 0.32);
     --border: var(--edge);
     --border-strong: var(--edge-strong);
-    --hero-overlay: rgb(0 0 0 / 0.78);
-    --overlay-soft: rgb(0 0 0 / 0.30);
     --map-land: #263a37;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
     --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 14px 32px rgb(0 0 0 / 0.5);
@@ -280,7 +283,9 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 /* --- hero ---------------------------------------------------------------- */
 .hero { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--brand-strong); border: 1px solid var(--border); min-height: 15rem; display: grid; align-items: end; box-shadow: var(--shadow); }
 .hero__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: img-in var(--dur-slow) var(--ease-out); }
-.hero__body { position: relative; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: var(--on-photo); background: linear-gradient(to top, var(--hero-overlay) 65%, var(--overlay-soft)); text-shadow: var(--text-shadow-photo); display: grid; gap: var(--sp-2); }
+.hero::after { content: ""; position: absolute; inset: 0; z-index: 0; background: var(--photo-fade); pointer-events: none; }
+.hero--map::after { content: none; }
+.hero__body { position: relative; z-index: 1; padding: var(--sp-5) var(--sp-4) var(--sp-4); color: var(--on-photo); text-shadow: var(--text-shadow-photo); display: grid; gap: var(--sp-2); }
 .hero__body a { color: inherit; }
 .hero__kicker { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; font-size: var(--fs-meta); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .hero__title { font-family: var(--font-display); font-size: var(--fs-h1); line-height: var(--lh-tight); font-weight: 600; text-wrap: balance; }
@@ -295,8 +300,8 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .hero--map { display: grid; grid-template-rows: auto 1fr; align-items: start; min-height: 0; background: var(--brand-soft); }
 .hero--map .map { border-radius: 0; border: 0; background: transparent; width: min(100%, var(--promo-map)); }
 .hero__band { position: relative; overflow: hidden; min-height: var(--band-h); padding: var(--sp-4); background: var(--brand); color: var(--brand-fg); display: grid; align-content: end; }
-.hero__band::before { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-overlay) 72%, var(--overlay-soft)); }
-.hero__band-body { position: relative; display: grid; gap: var(--sp-2); text-shadow: var(--text-shadow-photo); }
+.hero__band::after { content: ""; position: absolute; inset: 0; z-index: 0; background: var(--photo-fade); pointer-events: none; }
+.hero__band-body { position: relative; z-index: 1; display: grid; gap: var(--sp-2); text-shadow: var(--text-shadow-photo); }
 .hero__band .pill { background: var(--brand); }
 .hero__promo { display: grid; justify-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-4) var(--sp-5); text-decoration: none; color: inherit; transition: transform var(--dur-fast) var(--ease-out); }
 .hero__promo:active { transform: scale(var(--press)); }
@@ -350,7 +355,8 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .chapter--here { border: 2px solid var(--accent); }
 .chapter__media { position: relative; border-radius: var(--radius); overflow: hidden; min-height: 9rem; display: grid; align-items: end; background: var(--brand-strong); }
 .chapter__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.chapter__caption { position: relative; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); color: var(--on-photo); background: linear-gradient(to top, var(--hero-overlay) 70%, var(--overlay-soft)); text-shadow: var(--text-shadow-photo); }
+.chapter__media::after { content: ""; position: absolute; inset: 0; z-index: 0; background: var(--photo-fade); pointer-events: none; }
+.chapter__caption { position: relative; z-index: 1; display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3); color: var(--on-photo); text-shadow: var(--text-shadow-photo); }
 .chapter__n { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--brand); color: var(--brand-fg); display: grid; place-items: center; font-weight: 700; font-size: var(--fs-meta); flex: none; text-shadow: none; }
 .chapter--here .chapter__n { background: var(--accent); color: var(--accent-fg); }
 .chapter__title { font-family: var(--font-display); font-size: var(--fs-h2); line-height: var(--lh-tight); font-weight: 600; }
