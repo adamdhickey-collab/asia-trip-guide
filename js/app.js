@@ -158,7 +158,7 @@ function heroHtml(day, { isToday }) {
       <div class="hero__kicker">
         ${isToday ? `<span class="pill pill--today">${icon('i-sun')} Today</span>` : ''}
         <span class="pill">Day ${day.n} of ${LAST}</span>
-        <span class="pill pill--plain">${esc(clock.longDate(day.date))}</span>
+        <span class="pill">${esc(clock.longDate(day.date))}</span>
       </div>
       <h1 class="hero__title">${esc(day.title)}</h1>
       <p class="hero__sub">${esc(day.route || day.place)}${day.route ? '' : `, ${esc(day.country)}`}</p>
