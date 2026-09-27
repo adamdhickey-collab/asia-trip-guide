@@ -34,11 +34,11 @@
   --edge: rgb(31 42 40 / 0.18);
   --edge-strong: rgb(31 42 40 / 0.36);
   /* Photo overlays are black, eased from the bottom up: solid enough behind
-     the text (5.5:1 for white even over bright water), then a long soft fade
+     the text (with the text shadow and solid pills carrying the rest), then a long soft fade
      to nothing so the picture is never cut by a hard edge. */
-  --overlay: rgb(0 0 0 / 0.82);
-  --overlay-mid: rgb(0 0 0 / 0.55);
-  --overlay-soft: rgb(0 0 0 / 0.22);
+  --overlay: rgb(0 0 0 / 0.66);
+  --overlay-mid: rgb(0 0 0 / 0.40);
+  --overlay-soft: rgb(0 0 0 / 0.14);
   --photo-fade: linear-gradient(to top, var(--overlay) 0%, var(--overlay) 34%, var(--overlay-mid) 52%, var(--overlay-soft) 74%, transparent 100%);
   --text-shadow-photo: 0 1px 2px rgb(0 0 0 / 0.45);
   --on-photo: #ffffff;               /* text laid over a photograph */
