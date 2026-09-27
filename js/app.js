@@ -194,11 +194,11 @@ function renderDay(n) {
         ${!isToday && st.phase === 'during' ? `<a class="daybar__today" href="#/today">${icon('i-sun')} Today</a>` : ''}
       </div>
       <a class="daybar__btn" href="#/day/${n + 1}" ${n === LAST ? 'aria-disabled="true"' : ''} aria-label="${isToday ? 'Tomorrow' : `Day ${Math.min(n + 1, LAST)}`}"><span>${isToday ? 'Tomorrow' : `Day ${Math.min(n + 1, LAST)}`}</span>${icon('i-right')}</a>
-      <div class="progress" role="img" aria-label="Day ${n} of ${LAST}${st.phase === 'during' ? `, today is day ${st.day}` : ''}">${days.map((d) => {
-        const past = st.phase === 'after' || (st.phase === 'during' && d.n < st.day);
-        const cls = ['progress__seg', past ? 'progress__seg--past' : '', st.phase === 'during' && d.n === st.day ? 'progress__seg--today' : '', d.n === n ? 'progress__seg--viewing' : ''].filter(Boolean).join(' ');
-        return `<span class="${cls}"></span>`;
-      }).join('')}</div>
+      <div class="progress" role="img" aria-label="Day ${n} of ${LAST}${st.phase === 'during' ? `, today is day ${st.day}` : ''}" style="--days:${LAST}">
+        ${st.phase === 'after' ? `<span class="progress__fill" style="--p:1"></span>` : ''}
+        ${st.phase === 'during' ? `<span class="progress__fill" style="--p:${(st.day - 1) / LAST}"></span><span class="progress__today" style="--i:${st.day - 1}"></span>` : ''}
+        ${!isToday ? `<span class="progress__view" style="--i:${n - 1}"></span>` : ''}
+      </div>
     </nav>
     ${heroHtml(day, { isToday })}
     <div class="cols">

@@ -121,7 +121,7 @@
   --pop: 300ms;           /* its callout pops in as the line arrives */
   --stagger: 560ms;       /* the next leg begins as the pop finishes (~4.5s in all) */
   --arrive: 80ms;         /* the pop starts this much before the line fully lands, so it reads as one motion */
-  --seg-h: 0.4rem;        /* the trip progress strip */
+  --seg-h: 0.25rem;       /* the trip progress track */
   --select: 1.12;         /* a selected map stop grows to this */
   --maxw: 40rem;
   --maxw-wide: 64rem;     /* iPad and landscape phones */
@@ -448,13 +448,15 @@ a.map__city { cursor: pointer; }
   .sheet--open .sheet__panel { transform: none; opacity: 1; }
 }
 
-/* --- progress strip -------------------------------------------------------- */
-.progress { grid-column: 1 / -1; display: flex; gap: 2px; padding-top: var(--sp-2); }
-.progress__seg { flex: 1; height: var(--seg-h); border-radius: var(--radius-pill); background: var(--border); transition: background var(--dur) var(--ease-out), transform var(--dur) var(--ease-out); }
-.progress__seg--past { background: var(--brand); }
-.progress__seg--today { background: var(--accent); }
-.progress__seg--viewing { transform: scaleY(1.8); outline: 1px solid var(--fg); }
-.progress__seg--viewing.progress__seg--today { outline: 0; }
+/* --- progress track ------------------------------------------------------------
+   A slim track split into sixteen faint slots. Jade fills the days already
+   travelled, a saffron slot is today, and a small ink dot below marks the
+   day being read (it slides as you page). Nothing is outlined or enlarged. */
+.progress { grid-column: 1 / -1; position: relative; height: var(--seg-h); margin-top: var(--sp-3); margin-bottom: var(--dot); border-radius: var(--radius-pill); background: var(--brand-soft);
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(100% / var(--days) - 1px), var(--bg) calc(100% / var(--days) - 1px), var(--bg) calc(100% / var(--days))); }
+.progress__fill { position: absolute; inset: 0 auto 0 0; width: calc(var(--p) * 100%); border-radius: var(--radius-pill); background: var(--brand); }
+.progress__today { position: absolute; top: 0; bottom: 0; left: calc(var(--i) * 100% / var(--days)); width: calc(100% / var(--days)); border-radius: var(--radius-pill); background: var(--accent); }
+.progress__view { position: absolute; top: calc(100% + 3px); left: calc((var(--i) + 0.5) * 100% / var(--days)); width: var(--dot); height: var(--dot); margin-left: calc(-1 * var(--dot) / 2); border-radius: 50%; background: var(--fg); transition: left var(--dur) var(--ease-out); }
 
 /* --- lightbox --------------------------------------------------------------- */
 .lightbox { position: fixed; inset: 0; z-index: 40; background: var(--scrim); display: grid; place-items: center; opacity: 0; transition: opacity var(--dur) var(--ease-out); padding: var(--sp-4); }
