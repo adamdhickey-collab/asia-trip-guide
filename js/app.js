@@ -387,7 +387,7 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
     const tag = inert ? 'g' : 'a';
     const attrs = inert ? '' : ` href="#/day/${target}" data-stop="${c.id}" aria-label="${esc(c.name)}, days ${c.days[0]} to ${c.days.at(-1)}"`;
     const pillText = isHere ? String(day) : (c.days.length > 1 ? `${c.days[0]}–${c.days.at(-1)}` : String(c.days[0]));
-    const pillW = 16 + pillText.length * CH;
+    const pillW = 20 + pillText.length * CH; // a first guess; fitPills() measures the real text after render
     const clipId = `clip-${prefix}-${c.id}`;
     return `<${tag} class="map__city${isHere ? ' map__city--here' : ''}${unfold && settled ? ' map__city--set' : ''}"${style}${attrs}>
       <line class="map__leader" x1="${x}" y1="${y}" x2="${cx}" y2="${cy}"/>
@@ -409,6 +409,23 @@ function mapSvg({ here = null, unfold = false, day = null, link = false, inert =
       ${land}${countryLabels}${legPaths}${markers}
     </svg>`;
   return link ? `<a class="map-link" href="#/map" aria-label="Open the full route map">${svg}<span class="map-link__hint">${icon('i-map')} Tap to explore the route</span></a>` : svg;
+}
+
+/**
+ * Size each day pill to its rendered text. Fonts differ by device (the
+ * iPhone's digits and en dash run wider than the estimate used in markup),
+ * so after a map is in the DOM, measure and set the rect's width.
+ */
+function fitPills() {
+  view.querySelectorAll('svg.map .map__callout').forEach((g) => {
+    const text = g.querySelector('.map__pill-text'); const rect = g.querySelector('.map__pill');
+    if (!text || !rect || typeof text.getComputedTextLength !== 'function') return;
+    const len = text.getComputedTextLength();
+    if (!len) return;
+    const pad = 20; const w = Math.ceil(len + pad);
+    const cx = parseFloat(text.getAttribute('x'));
+    rect.setAttribute('width', w); rect.setAttribute('x', cx - w / 2);
+  });
 }
 
 /** Numbered stop chips: the tappable twin of the map for anyone who prefers a list. */
@@ -748,6 +765,7 @@ function route() {
   });
   updateTopStatus();
   fitChrome();
+  fitPills();
   bindLightbox();
   lightbox?.close?.();
   window.scrollTo(0, 0);
