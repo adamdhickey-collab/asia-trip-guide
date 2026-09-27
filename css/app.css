@@ -17,6 +17,7 @@
   --jade-900: #073a37;   /* 12.1:1 */
   --jade-800: #0b4844;   /* 10.0:1 */
   --jade-700: #0f5f5a;   /*  7.3:1 — brand fill; white on it 7.3:1 */
+  --jade-300: #8fc4b9;   /* the unfilled progress track: clearly a line, never text */
   --jade-100: #d9ebe7;
   --jade-50:  #ecf4f2;
   --saffron-700: #8f4406; /* 7.4:1 — warning text */
@@ -121,7 +122,9 @@
   --pop: 300ms;           /* its callout pops in as the line arrives */
   --stagger: 560ms;       /* the next leg begins as the pop finishes (~4.5s in all) */
   --arrive: 80ms;         /* the pop starts this much before the line fully lands, so it reads as one motion */
-  --seg-h: 0.25rem;       /* the trip progress track */
+  --seg-h: 0.3rem;        /* the trip progress track */
+  --seg-gap: 3px;         /* the cut between one day and the next */
+  --track: var(--jade-300);
   --select: 1.12;         /* a selected map stop grows to this */
   --maxw: 40rem;
   --maxw-wide: 64rem;     /* iPad and landscape phones */
@@ -150,6 +153,7 @@
     --border: var(--edge);
     --border-strong: var(--edge-strong);
     --map-land: #263a37;
+    --track: #3f6b64;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 6px 20px rgb(0 0 0 / 0.35);
     --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.4), 0 14px 32px rgb(0 0 0 / 0.5);
   }
@@ -452,8 +456,10 @@ a.map__city { cursor: pointer; }
    A slim track split into sixteen faint slots. Jade fills the days already
    travelled, a saffron slot is today, and a small ink dot below marks the
    day being read (it slides as you page). Nothing is outlined or enlarged. */
-.progress { grid-column: 1 / -1; position: relative; height: var(--seg-h); margin-top: var(--sp-3); margin-bottom: var(--dot); border-radius: var(--radius-pill); background: var(--brand-soft);
-  background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(100% / var(--days) - 1px), var(--bg) calc(100% / var(--days) - 1px), var(--bg) calc(100% / var(--days))); }
+.progress { grid-column: 1 / -1; position: relative; height: var(--seg-h); margin-top: var(--sp-3); margin-bottom: var(--dot); border-radius: var(--radius-pill); background: var(--track); overflow: visible; }
+/* The cuts sit on top of every layer, so filled days and today are sliced too. */
+.progress::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: repeating-linear-gradient(to right, transparent 0, transparent calc(100% / var(--days) - var(--seg-gap)), var(--bg) calc(100% / var(--days) - var(--seg-gap)), var(--bg) calc(100% / var(--days))); }
 .progress__fill { position: absolute; inset: 0 auto 0 0; width: calc(var(--p) * 100%); border-radius: var(--radius-pill); background: var(--brand); }
 .progress__today { position: absolute; top: 0; bottom: 0; left: calc(var(--i) * 100% / var(--days)); width: calc(100% / var(--days)); border-radius: var(--radius-pill); background: var(--accent); }
 .progress__view { position: absolute; top: calc(100% + 3px); left: calc((var(--i) + 0.5) * 100% / var(--days)); width: var(--dot); height: var(--dot); margin-left: calc(-1 * var(--dot) / 2); border-radius: 50%; background: var(--fg); transition: left var(--dur) var(--ease-out); }
