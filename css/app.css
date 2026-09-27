@@ -36,11 +36,13 @@
   /* Photo overlays are black, eased from the bottom up: solid enough behind
      the text (with the text shadow and solid pills carrying the rest), then a long soft fade
      to nothing so the picture is never cut by a hard edge. */
-  --overlay: rgb(0 0 0 / 0.66);
-  --overlay-mid: rgb(0 0 0 / 0.40);
-  --overlay-soft: rgb(0 0 0 / 0.14);
-  --photo-fade: linear-gradient(to top, var(--overlay) 0%, var(--overlay) 34%, var(--overlay-mid) 52%, var(--overlay-soft) 74%, transparent 100%);
-  --text-shadow-photo: 0 1px 2px rgb(0 0 0 / 0.45);
+  --overlay: rgb(0 0 0 / 0.50);
+  --overlay-mid: rgb(0 0 0 / 0.28);
+  --overlay-soft: rgb(0 0 0 / 0.08);
+  --photo-fade: linear-gradient(to top, var(--overlay) 0%, var(--overlay) 30%, var(--overlay-mid) 48%, var(--overlay-soft) 64%, transparent 76%, transparent 100%);
+  /* Two layers: a tight shadow that defines the letter edges and a wide soft
+     one that reads as depth, so white text sits in the photo instead of on it. */
+  --text-shadow-photo: 0 1px 2px rgb(0 0 0 / 0.55), 0 2px 14px rgb(0 0 0 / 0.40);
   --on-photo: #ffffff;               /* text laid over a photograph */
   --on-photo-soft: rgb(255 255 255 / 0.22); /* a pill or button over a photograph */
   --scrim: rgb(0 0 0 / 0.92);        /* behind the lightbox */
@@ -113,8 +115,8 @@
   --promo-cta: 22rem;     /* and the button under it */
   --promo-map-wide: 19rem; /* the promo map on an iPad */
   --portrait: 5.5rem;      /* Lucy's photo on the countdown screen */
-  --stamp: 2.5rem;         /* her paw-print stamp of approval */
-  --stamp-tilt: -14deg;
+  --stamp: 3.25rem;        /* her paw-print stamp of approval */
+  --stamp-tilt: -18deg;
   --draw: 450ms;          /* one leg glides in over this, soft start and stop */
   --pop: 300ms;           /* its callout pops in as the line arrives */
   --stagger: 560ms;       /* the next leg begins as the pop finishes (~4.5s in all) */
@@ -381,9 +383,9 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 /* --- Lucy's stamp of approval --------------------------------------------- */
 .lucy { order: 99; /* last, on the phone's single column */ display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-3) var(--sp-2); }
 .lucy__portrait { position: relative; flex: none; width: var(--portrait); height: var(--portrait); }
-.lucy__portrait img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; outline: 1px solid var(--border); outline-offset: -1px; }
-.lucy__stamp { position: absolute; right: calc(-1 * var(--sp-2)); bottom: calc(-1 * var(--sp-1)); width: var(--stamp); height: var(--stamp); border-radius: 50%; background: var(--accent); color: var(--accent-fg); border: 2px solid var(--bg); box-shadow: var(--shadow); display: grid; place-items: center; transform: rotate(var(--stamp-tilt)); }
-.lucy__stamp svg { width: 1.5rem; height: 1.5rem; }
+.lucy__photo { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; outline: 1px solid var(--border); outline-offset: -1px; }
+/* A real ink paw print in saffron, pressed over the lower right of the portrait. */
+.lucy__stamp { position: absolute; right: calc(-1 * var(--sp-3)); bottom: calc(-1 * var(--sp-3)); width: var(--stamp); height: auto; transform: rotate(var(--stamp-tilt)); filter: drop-shadow(0 1px 1px rgb(31 42 40 / 0.25)); }
 .lucy__text { font-family: var(--font-display); font-size: var(--fs-h3); font-weight: 600; color: var(--fg-muted); }
 
 /* --- map ----------------------------------------------------------------- */

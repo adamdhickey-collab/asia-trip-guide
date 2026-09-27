@@ -267,8 +267,8 @@ function renderToday() {
       </div>
       <aside class="lucy" aria-label="A note from Lucy">
         <span class="lucy__portrait">
-          <img src="img/site/lucy.webp" alt="Lucy, a scruffy black dog with her tongue out" width="370" height="370" decoding="async" loading="lazy">
-          <span class="lucy__stamp" aria-hidden="true">${icon('i-paw')}</span>
+          <img class="lucy__photo" src="img/site/lucy.webp" alt="Lucy, a scruffy black dog with her tongue out" width="370" height="370" decoding="async" loading="lazy">
+          <img class="lucy__stamp" src="img/site/paw.png" alt="" width="457" height="484" decoding="async" loading="lazy">
         </span>
         <p class="lucy__text">Lucy approves this trip.</p>
       </aside>`;
