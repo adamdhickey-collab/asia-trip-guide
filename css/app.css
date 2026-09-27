@@ -375,7 +375,8 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
 .map__label { font-family: var(--font-body); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; fill: var(--fg-faint); text-transform: uppercase; stroke: none; }
 .map__leg { fill: none; stroke: var(--brand); stroke-width: 2.5; }
 .map__leg--air { stroke-dasharray: 5 5; }
-.map__city { cursor: pointer; }
+.map__city { cursor: inherit; }
+a.map__city { cursor: pointer; }
 .map__leader { stroke: var(--brand); stroke-width: 1.5; }
 .map__point { fill: var(--brand); stroke: none; }
 .map__ring { fill: none; stroke: var(--on-photo); stroke-width: 3; }
@@ -615,9 +616,10 @@ svg { display: inline-block; width: 1.5em; height: 1.5em; fill: none; stroke: cu
   .hero__promo:hover .map { transform: scale(1.02); }
 
   /* map stops: grow, ring goes saffron, leader thickens; the matching list row lights up */
-  .map__city:hover .map__callout { transform: scale(var(--select)); }
+  /* Only real marker links hover; the promo on the countdown screen is one link, one hover. */
+  a.map__city:hover .map__callout { transform: scale(var(--select)); }
   .map__ring, .map__leader { transition: stroke var(--dur-fast), stroke-width var(--dur-fast); }
-  .map__city:hover .map__ring { stroke: var(--accent); stroke-width: 4; }
+  a.map__city:hover .map__ring { stroke: var(--accent); stroke-width: 4; }
   .map__city--hover .map__callout { transform: scale(var(--select)); }
   .map__city--hover .map__ring { stroke: var(--accent); stroke-width: 4; }
 }
