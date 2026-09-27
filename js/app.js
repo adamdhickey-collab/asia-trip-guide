@@ -264,7 +264,14 @@ function renderToday() {
             <p class="meta" style="margin-top:var(--sp-3)">More under <a href="#/info">Info</a>. Once the trip starts, this screen becomes today's plan.</p>
           </section>
         </div>
-      </div>`;
+      </div>
+      <aside class="lucy" aria-label="A note from Lucy">
+        <span class="lucy__portrait">
+          <img src="img/site/lucy.webp" alt="Lucy, a scruffy black dog with her tongue out" width="370" height="370" decoding="async" loading="lazy">
+          <span class="lucy__stamp" aria-hidden="true">${icon('i-paw')}</span>
+        </span>
+        <p class="lucy__text">Lucy approves this trip.</p>
+      </aside>`;
     countUp(view.querySelector('.count__num'), st.daysUntil);
     return;
   }

@@ -23,6 +23,7 @@ const SHELL = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
+  './img/site/lucy.webp',
   './img/cover/angkor.jpg',
   './img/cover/chiang-mai-pagoda.jpg',
   './img/cover/halong-junk.jpg',
